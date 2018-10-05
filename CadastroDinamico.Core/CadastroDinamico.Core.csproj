@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CadastroDinamico.Dominio\CadastroDinamico.Dominio.csproj" />
+    <ProjectReference Include="..\CadastroDinamico.Repositorio.Interface\CadastroDinamico.Repositorio.Interface.csproj" />
+    <ProjectReference Include="..\CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj" />
+    <ProjectReference Include="..\CadastroDinamico.Utils\CadastroDinamico.Utils.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,52 @@
+﻿<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Bancos de Dados</label>
+                <select id="selDatabases" class="custom-select"></select>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Schemas</label>
+                <select id="selSchemas" class="custom-select"></select>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Tabelas</label>
+                <select id="selTabelas" class="custom-select"></select>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="tblColunas" class="table" hidden="hidden">
+                <thead>
+                    <tr>
+                        <th>
+                            Colunas
+                        </th>
+                        <th>
+                            Exibir
+                        </th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <environment include="Development">
+        <script src="~/js/cadDinamicoIndex.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/cadDinamicoIndex.min.js"></script>
+    </environment>
+}
