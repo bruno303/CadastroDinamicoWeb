@@ -1,38 +1,60 @@
 ﻿<div class="container-fluid">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
             <div class="form-group">
-                <label>Bancos de Dados</label>
+                <label>Banco de Dados</label>
                 <select id="selDatabases" class="custom-select"></select>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
             <div class="form-group">
-                <label>Schemas</label>
+                <label>Schema</label>
                 <select id="selSchemas" class="custom-select"></select>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-4">
             <div class="form-group">
-                <label>Tabelas</label>
+                <label>Tabela</label>
                 <select id="selTabelas" class="custom-select"></select>
             </div>
         </div>
     </div>
+    <div id="container-colunas">
+        <div class="row">
+            <div class="col-md-12">
+                <table id="tblColunas" class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                Coluna
+                            </th>
+                            <th>
+                                Exibir
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <hr />
     <div class="row">
         <div class="col-md-12">
-            <table id="tblColunas" class="table" hidden="hidden">
+            <table id="tblChavesEstrangeiras" class="table table-sm table-hover">
                 <thead>
                     <tr>
                         <th>
-                            Colunas
+                            Coluna
                         </th>
                         <th>
-                            Exibir
+                            Tabela Referenciada
+                        </th>
+                        <th>
+                            Coluna Referenciada
+                        </th>
+                        <th>
+                            Descrição da tabela
                         </th>
                     </tr>
                 </thead>
@@ -40,13 +62,19 @@
             </table>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-12">
+            <button class="btn-block btn-success btn-block btn-lg" onclick="gravar()">Gravar</button>
+        </div>
+    </div>
+
 </div>
 
 @section Scripts{
     <environment include="Development">
-        <script src="~/js/cadDinamicoIndex.js"></script>
+        <script type="text/javascript" src="~/js/cadDinamicoIndex.js"></script>
     </environment>
     <environment exclude="Development">
-        <script src="~/js/cadDinamicoIndex.min.js"></script>
+        <script type="text/javascript" src="~/js/cadDinamicoIndex.min.js"></script>
     </environment>
 }

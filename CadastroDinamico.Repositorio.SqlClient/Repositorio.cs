@@ -1,12 +1,11 @@
 ﻿using CadastroDinamico.Dominio;
-using CadastroDinamico.Repositorio.Interface;
 using System;
 using System.Collections.Generic;
 using System.Data;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
-    public class Repositorio : IRepositorio
+    public class Repositorio
     {
         public void CriarDatabaseAplicacao()
         {
@@ -132,6 +131,114 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 throw ex;
             }
             return colunas;
+        }
+
+        public int SelecionarIdConfiguracaoTabela(string database, string schema, string tabela)
+        {
+            DataTable dados = null;
+            int codigo = 0;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    codigo = Convert.ToInt32(dados.Rows[0][0].ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return codigo;
+        }
+
+        public string SelecionarColunasVisiveis(string database, string schema, string tabela)
+        {
+            DataTable dados = null;
+            string colVisiveis = string.Empty;
+            int id = 0;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    id = Convert.ToInt32(dados.Rows[0][0].ToString());
+                }
+                colVisiveis = SelecionarColunasVisiveis(id);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return colVisiveis;
+        }
+
+        public string SelecionarColunasVisiveis(int id)
+        {
+            DataTable dados = null;
+            string colVisiveis = string.Empty;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    colVisiveis = dados.Rows[0][4].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return colVisiveis;
+        }
+
+        public string SelecionarColunasChaveEstrangeira(int id)
+        {
+            DataTable dados = null;
+            string colVisiveis = string.Empty;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    colVisiveis = dados.Rows[0][5].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return colVisiveis;
+        }
+
+        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table, string colVisivies, string colChave)
+        {
+            var retorno = string.Empty;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}' ",
+                    id, database, schema, table, colVisivies, colChave);
+                conexao.ExecutarQuery(query);
+            }
+            catch (Exception ex)
+            {
+                retorno = ex.Message;
+            }
+            return retorno;
         }
     }
 }

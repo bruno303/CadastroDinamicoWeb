@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CadastroDinamico.Web</title>
+    <title>CadastroDinamico</title>
 
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
@@ -13,6 +13,8 @@
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="~/css/site.min.css" />
     </environment>
+
+    @RenderSection("StyleSheets", required: false)
 </head>
 <body>
     <partial name="_NavBar">
@@ -22,7 +24,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; 2018 - CadastroDinamico.Web</p>
+            <p>&copy; @Html.DisplayText(DateTime.Now.Year.ToString()) - CadastroDinamico.Web</p>
         </footer>
     </div>
 

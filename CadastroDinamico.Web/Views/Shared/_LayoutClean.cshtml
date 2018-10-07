@@ -13,6 +13,8 @@
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="~/css/site.min.css" />
     </environment>
+
+    @RenderSection("StyleSheets", required: false)
 </head>
 <body>
     <partial name="_NavBar">
@@ -20,9 +22,7 @@
 
     <div class="container body-content">
         @RenderBody()
-        <footer>
-            <br />
-        </footer>
+        <footer></footer>
     </div>
 
     <environment include="Development">

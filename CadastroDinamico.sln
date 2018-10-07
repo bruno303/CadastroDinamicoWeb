@@ -11,11 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Core", "Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Utils", "CadastroDinamico.Utils\CadastroDinamico.Utils.csproj", "{A072FD18-5ECA-4621-8F6D-3E0DA54570E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroDinamico.Repositorio.Interface", "CadastroDinamico.Repositorio.Interface\CadastroDinamico.Repositorio.Interface.csproj", "{FE20A502-08AC-4A2B-8049-284D495F840F}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Acesso a Dados", "Acesso a Dados", "{7842ECC6-53AB-456D-8240-A9C1DD72E157}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroDinamico.Repositorio.SqlClient", "CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj", "{02687EFB-C233-4355-B984-2659CAFDC03C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Repositorio.SqlClient", "CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj", "{02687EFB-C233-4355-B984-2659CAFDC03C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,10 +35,6 @@ Global
 		{A072FD18-5ECA-4621-8F6D-3E0DA54570E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A072FD18-5ECA-4621-8F6D-3E0DA54570E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A072FD18-5ECA-4621-8F6D-3E0DA54570E8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE20A502-08AC-4A2B-8049-284D495F840F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE20A502-08AC-4A2B-8049-284D495F840F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE20A502-08AC-4A2B-8049-284D495F840F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE20A502-08AC-4A2B-8049-284D495F840F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,10 +42,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{FE20A502-08AC-4A2B-8049-284D495F840F} = {7842ECC6-53AB-456D-8240-A9C1DD72E157}
-		{02687EFB-C233-4355-B984-2659CAFDC03C} = {7842ECC6-53AB-456D-8240-A9C1DD72E157}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {64FF7541-27E6-407D-BAAA-EC0D62F3BB69}

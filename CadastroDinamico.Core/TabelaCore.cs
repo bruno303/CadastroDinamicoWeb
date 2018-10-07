@@ -1,13 +1,13 @@
 ﻿using CadastroDinamico.Dominio;
-using CadastroDinamico.Repositorio.Interface;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using SqlClient = CadastroDinamico.Repositorio.SqlClient;
 
 namespace CadastroDinamico.Core
 {
-    public class TabelaCore : ITabelaCore
+    public class TabelaCore
     {
         public string Nome { get; set; }
         public string Database { get; set; }
@@ -46,7 +46,17 @@ namespace CadastroDinamico.Core
         public string Carregar()
         {
             string retorno = string.Empty;
-            IRepositorio repositorio = new Repositorio.SqlClient.Repositorio();
+            SqlClient.Repositorio repositorio = new SqlClient.Repositorio();
+
+            if (string.IsNullOrEmpty(Database))
+            {
+                throw new ArgumentException("Propriedade Database é obrigatória.");
+            }
+
+            if (string.IsNullOrEmpty(Nome))
+            {
+                throw new ArgumentException("Propriedade Nome da tabela é obrigatória.");
+            }
 
             if (string.IsNullOrEmpty(Schema))
             {
