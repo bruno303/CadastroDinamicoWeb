@@ -1,4 +1,12 @@
-﻿<div class="container-fluid">
+﻿@section StyleSheets {
+    <style>
+        h2 {
+            padding-bottom: 10px;
+        }
+    </style>
+}
+
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-4">
             <div class="form-group">
@@ -19,14 +27,23 @@
             </div>
         </div>
     </div>
+
+    <hr />
+
     <div id="container-colunas">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-4">
+                <h2>Colunas</h2>
+            </div>
+            <div class="col-md-8">
+                <h2>Chaves Estrangeiras</h2>
+            </div>
+            <div class="col-md-4">
                 <table id="tblColunas" class="table table-sm table-hover">
                     <thead>
                         <tr>
                             <th>
-                                Coluna
+                                Nome
                             </th>
                             <th>
                                 Exibir
@@ -36,30 +53,27 @@
                     <tbody></tbody>
                 </table>
             </div>
-        </div>
-    </div>
-    <hr />
-    <div class="row">
-        <div class="col-md-12">
-            <table id="tblChavesEstrangeiras" class="table table-sm table-hover">
-                <thead>
-                    <tr>
-                        <th>
-                            Coluna
-                        </th>
-                        <th>
-                            Tabela Referenciada
-                        </th>
-                        <th>
-                            Coluna Referenciada
-                        </th>
-                        <th>
-                            Descrição da tabela
-                        </th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="col-md-8">
+                <table id="tblChavesEstrangeiras" class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                Coluna
+                            </th>
+                            <th>
+                                Tabela Referenciada
+                            </th>
+                            <th>
+                                Coluna Referenciada
+                            </th>
+                            <th>
+                                Descrição da tabela
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="row">

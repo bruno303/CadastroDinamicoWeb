@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 
 config.ini
+/CadastroDinamico.Web/Properties/PublishProfiles
