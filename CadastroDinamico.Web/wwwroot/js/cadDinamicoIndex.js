@@ -1,23 +1,111 @@
-﻿// Databases
+﻿//Geral
+$(document).ready(() => {
+    $("#divColunas").attr('hidden', true);
+    $("#divFk").attr('hidden', true);
+
+    consultarDatabases();
+
+    $("#selDatabases").change(() => {
+        $("#divFk").attr('hidden', true);
+        $("#divColunas").attr('hidden', true);
+        $("#tblChavesEstrangeiras > tbody tr").remove();
+        $("#tblColunas > tbody tr").remove();
+        $("#selSchemas > option").remove();
+        consultarSchemas();
+    });
+
+    $("#selSchemas").change(() => {
+        $("#divFk").attr('hidden', true);
+        $("#divColunas").attr('hidden', true);
+        $("#tblChavesEstrangeiras > tbody tr").remove();
+        $("#tblColunas > tbody tr").remove();
+        $("#selTabelas > option").remove();
+        consultarTabelas();
+    });
+
+    $("#selTabelas").change(() => {
+        $("#divFk").attr('hidden', true);
+        $("#divColunas").attr('hidden', true);
+        $("#tblChavesEstrangeiras > tbody tr").remove();
+        $("#tblColunas > tbody tr").remove();
+        consultarColunas();
+    });
+});
+
+function successConsultaDatabase(data) {
+    $("#selDatabases > option").remove();
+    fillDropDown("#selDatabases", data);
+    consultarSchemas();
+}
+
+function successConsultaSchema(data) {
+    $("#selSchemas > option").remove();
+    fillDropDown("#selSchemas", data);
+    consultarTabelas();
+}
+
+function successConsultaTabela(data) {
+    $("#selTabelas > option").remove();
+    fillDropDown("#selTabelas", data);
+    consultarColunas();
+}
+
+function successConsultarColunas(data) {
+    if (data.length > 0) {
+        $('#divColunas').attr('hidden', false);
+    }
+    $("#tblColunas > tbody tr").remove();
+    $.each(data, function (i, coluna) {
+        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" checked="' + coluna.visivel + '" /></td></tr>');
+    });
+    consultarColunasChaveEstrangeira();
+}
+
+function successConsultaChavesEstrangeiras(data) {
+    if (data.length > 0) {
+        $("#divFk").attr('hidden', false);
+    }
+    $("#tblChavesEstrangeiras > tbody tr").remove();
+    $.each(data, function (i, coluna) {
+        let opcoes = '';
+        $.each(coluna.colunasTabelaReferenciada, (i, col) => {
+            opcoes += '<option value="' + col + '">' + col + '</option>'
+        });
+        $("#tblChavesEstrangeiras > tbody").append('<tr><td>' + coluna.nome + '</td><td>' + coluna.tabelaReferenciada +
+            '</td><td>' + coluna.colunaReferenciada + '</td><td><select class="custom-select" id="' + 'select-' + i +
+            '">' + opcoes + '</select></tr>');
+        $('#select-' + i)[0].selectedIndex = coluna.indiceColTabelaReferenciada;
+    });
+    awaitLoad(false);
+}
+
+// Databases
 function consultarDatabases() {
     $.ajax({
         method: "GET",
         dataType: "JSON",
         url: "/CadDinamico/SelecionarDatabases",
-        sucess: function (data) {
-            $("#selDatabases > option").remove();
-            fillDropDown("#selDatabases", data);
-            consultarSchemas();
+        success: function (data) {
+            successConsultaDatabase(data);
+            console.log('Success invocado!');
         },
-        error: function (data) {
+        error: function (err) {
             alert("Houve um erro ao consultar as databases.");
+        }
+    })
+}
+
+// Schemas
+function consultarSchemas() {
+    $.ajax({
+        method: "GET",
+        dataType: "JSON",
+        url: "/CadDinamico/SelecionarSchemas?database=" + $("#selDatabases")[0].value,
+        success: function (data) {
+            successConsultaSchema(data);
         },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selDatabases > option").remove();
-                fillDropDown("#selDatabases", jqXHR.responseJSON);
-                consultarSchemas();
-            }
+        error: function (err) {
+            alert("Houve um erro ao consultar os schemas.");
         }
     })
 }
@@ -29,20 +117,11 @@ function consultarTabelas() {
         dataType: "JSON",
         url: "/CadDinamico/SelecionarTabelas?database=" + $("#selDatabases")[0].value +
             "&schema=" + $("#selSchemas")[0].value,
-        sucess: function (data) {
-            $("#selTabelas > option").remove();
-            fillDropDown("#selTabelas", data);
-            consultarColunas();
+        success: function (data) {
+            successConsultaTabela(data);
         },
-        error: function (data) {
+        error: function (err) {
             alert("Houve um erro ao consultar as tabelas.");
-        },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selTabelas > option").remove();
-                fillDropDown("#selTabelas", jqXHR.responseJSON);
-                consultarColunas();
-            }
         }
     })
 }
@@ -56,27 +135,13 @@ function consultarColunas() {
             url: "/CadDinamico/SelecionarColunas?database=" + $("#selDatabases")[0].value +
                 "&schema=" + $("#selSchemas")[0].value +
                 "&tabela=" + $("#selTabelas")[0].value,
-            sucess: function (data) {
-                $("#tblColunas > tbody tr").remove();
-                $.each(data, function (i, coluna) {
-                    $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" checked="' + coluna.visivel + '" /></td></tr>');
-                });
-                consultarColunasChaveEstrangeira();
-                awaitLoad(false);
+            success: function (data) {
+                successConsultarColunas(data);
             },
-            error: function (data) {
-                awaitLoad(false);
+            error: function (err) {
                 alert("Houve um erro ao consultar as colunas.");
             },
             complete: (jqXHR) => {
-                if (jqXHR.readyState === 4) {
-                    $("#tblColunas > tbody tr").remove();
-                    $.each(jqXHR.responseJSON, function (i, coluna) {
-                        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
-                            (coluna.visivel ? 'checked="checked"' : "") + ' /></td></tr>');
-                    });
-                    consultarColunasChaveEstrangeira();
-                }
                 awaitLoad(false);
             },
             beforeSend: () => {
@@ -85,6 +150,7 @@ function consultarColunas() {
         })
     }
     else {
+        $("#divColunas").attr('hidden', true);
         $("#tblColunas > tbody tr").remove();
     }
 }
@@ -97,54 +163,25 @@ function consultarColunasChaveEstrangeira() {
             url: "/CadDinamico/SelecionarColunasChaveEstrangeira?database=" + $("#selDatabases")[0].value +
                 "&schema=" + $("#selSchemas")[0].value +
                 "&tabela=" + $("#selTabelas")[0].value,
-            error: function (data) {
-                $("#tblChavesEstrangeiras").attr('hidden', true);
-                awaitLoad(false);
+            error: function (err) {
+                $("#divFk").attr('hidden', true);
                 alert("Houve um erro ao consultar as colunas de chave estrangeira.");
             },
             complete: (jqXHR) => {
-                if (jqXHR.readyState === 4) {
-                    if (jqXHR.responseJSON.length > 0) {
-                        $("#tblChavesEstrangeiras").attr('hidden', false);
-                    }
-                    $("#tblChavesEstrangeiras > tbody tr").remove();
-                    $.each(jqXHR.responseJSON, function (i, coluna) {
-                        let opcoes = '';
-                        $.each(coluna.colunasTabelaReferenciada, (i, col) => {
-                            opcoes += '<option value="' + col + '">' + col + '</option>'
-                        });
-                        $("#tblChavesEstrangeiras > tbody").append('<tr><td>' + coluna.nome + '</td><td>' + coluna.tabelaReferenciada +
-                            '</td><td>' + coluna.colunaReferenciada + '</td><td><select class="custom-select" id="' + 'select-' + i +
-                            '">' + opcoes + '</select></tr>');
-                        $('#select-' + i)[0].selectedIndex = coluna.indiceColTabelaReferenciada;
-                    });
-                }
                 awaitLoad(false);
             },
-            sucess: function(data) {
-                $("#tblChavesEstrangeiras > tbody tr").remove();
-                if (data.length > 0) {
-                    $("#tblChavesEstrangeiras").attr('hidden', false);
-                }
-                $.each(data, function (i, coluna) {
-                    let opcoes = '';
-                    $.each(coluna.colunasTabelaReferenciada, (i, col) => {
-                        opcoes += '<option value="' + col + '">' + col + '</option>'
-                    });
-                    $("#tblChavesEstrangeiras > tbody").append('<tr><td>' + coluna.nome + '</td><td>' + coluna.tabelaReferenciada +
-                        '</td><td>' + coluna.colunaReferenciada + '</td><td><select class="custom-select">' + opcoes +
-                        '</select></tr>');
-                });
-                awaitLoad(false);
+            success: function(data) {
+                successConsultaChavesEstrangeiras(data);
             },
             beforeSend: () => {
-                $("#tblChavesEstrangeiras").attr('hidden', true);
+                $("#divFk").attr('hidden', true);
                 awaitLoad(true);
             }
         })
     }
     else {
-        $("#tblColunas > tbody tr").remove();
+        $("#divFk").attr('hidden', true);
+        $("#tblChavesEstrangeiras > tbody tr").remove();
     }
 }
 
@@ -153,57 +190,6 @@ function awaitLoad(enabled) {
     $("#selSchemas")[0].disabled = enabled;
     $("#selTabelas")[0].disabled = enabled;
 }
-
-// Schemas
-function consultarSchemas() {
-    $.ajax({
-        method: "GET",
-        dataType: "JSON",
-        url: "/CadDinamico/SelecionarSchemas?database=" + $("#selDatabases")[0].value,
-        sucess: function (data) {
-            $("#selSchemas > option").remove();
-            fillDropDown("#selSchemas", data);
-        },
-        error: function (data) {
-            alert("Houve um erro ao consultar os schemas.");
-        },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selSchemas > option").remove();
-                fillDropDown("#selSchemas", jqXHR.responseJSON);
-                consultarTabelas();
-            }
-        }
-    })
-}
-
-//Geral
-$(document).ready(() => {
-    consultarDatabases();
-
-    $("#selDatabases").change(() => {
-        $("#tblChavesEstrangeiras").attr('hidden', false);
-        $("#tblChavesEstrangeiras > tbody tr").remove();
-        $("#tblColunas > tbody tr").remove();
-        $("#selSchemas > option").remove();
-        consultarSchemas();
-    });
-
-    $("#selSchemas").change(() => {
-        $("#tblChavesEstrangeiras").attr('hidden', false);
-        $("#tblChavesEstrangeiras > tbody tr").remove();
-        $("#tblColunas > tbody tr").remove();
-        $("#selTabelas > option").remove();
-        consultarTabelas();
-    });
-
-    $("#selTabelas").change(() => {
-        $("#tblChavesEstrangeiras").attr('hidden', false);
-        $("#tblChavesEstrangeiras > tbody tr").remove();
-        $("#tblColunas > tbody tr").remove();
-        consultarColunas();
-    });
-})
 
 function fillDropDown(select, data) {
     if (data.length > 0) {
@@ -215,8 +201,8 @@ function fillDropDown(select, data) {
 
 function gravar() {
     let dados = '';
-    let aux = $("#selDatabases")[0].value + ";" + $("#selSchemas")[0].value + ";" + 
-        $("#selTabelas")[0].value + "|"
+    let aux = $("#selDatabases")[0].value + ";" + $("#selSchemas")[0].value + ";" +
+        $("#selTabelas")[0].value + "|";
     let linhas = $("#tblColunas tbody > tr");
     $.each(linhas, (i, registro) => {
         if (registro.getElementsByTagName("input")[0].checked) {
