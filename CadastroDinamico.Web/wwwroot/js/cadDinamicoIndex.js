@@ -56,7 +56,8 @@ function successConsultarColunas(data) {
     }
     $("#tblColunas > tbody tr").remove();
     $.each(data, function (i, coluna) {
-        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" checked="' + coluna.visivel + '" /></td></tr>');
+        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
+        (coluna.visivel ? 'checked="checked" ' : '/></td ></tr >'));
     });
     consultarColunasChaveEstrangeira();
 }
@@ -87,7 +88,6 @@ function consultarDatabases() {
         url: "/CadDinamico/SelecionarDatabases",
         success: function (data) {
             successConsultaDatabase(data);
-            console.log('Success invocado!');
         },
         error: function (err) {
             alert("Houve um erro ao consultar as databases.");

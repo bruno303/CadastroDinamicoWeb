@@ -6,35 +6,68 @@
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         </div>
         <div class="col-md-12">
-            <form role="form" method="post" action="/Configuracao/SalvarConfiguracoes">
-                @Html.AntiForgeryToken()
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Servidor)
-                    @Html.EditorFor(m => m.Servidor, new { htmlAttributes = new { @class = "form-control" } })
-                    @Html.ValidationMessageFor(m => m.Servidor, "", new { @class = "text-danger" })
-                </div>
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Database)
-                    @Html.EditorFor(m => m.Database, new { htmlAttributes = new { @class = "form-control" } })
-                    @Html.ValidationMessageFor(m => m.Database, "", new { @class = "text-danger" })
-                </div>
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Usuario)
-                    @Html.EditorFor(m => m.Usuario, new { htmlAttributes = new { @class = "form-control" } })
-                    @Html.ValidationMessageFor(m => m.Usuario, "", new { @class = "text-danger" })
-                </div>
-                <div class="form-group">
-                    @Html.LabelFor(m => m.Senha)
-                    @Html.EditorFor(m => m.Senha, new { htmlAttributes = new { @class = "form-control", type="password" } })
-                    @Html.ValidationMessageFor(m => m.Senha, "", new { @class = "text-danger" })
-                </div>
-                <div class="checkbox" style="margin-bottom: 15px;">
-                    @Html.CheckBoxFor(m => m.RegistrarLog)
-                    @Html.LabelFor(m => m.RegistrarLog)
-                    @Html.ValidationMessageFor(m => m.RegistrarLog)
-                </div>
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </form>
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                @Html.LabelFor(m => m.Servidor)
+                @Html.EditorFor(m => m.Servidor, new { htmlAttributes = new { @class = "form-control", id = "inpServidor" } })
+                @Html.ValidationMessageFor(m => m.Servidor, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Database)
+                @Html.EditorFor(m => m.Database, new { htmlAttributes = new { @class = "form-control", id = "inpDatabase" } })
+                @Html.ValidationMessageFor(m => m.Database, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Usuario)
+                @Html.EditorFor(m => m.Usuario, new { htmlAttributes = new { @class = "form-control", id = "inpUsuario" } })
+                @Html.ValidationMessageFor(m => m.Usuario, "", new { @class = "text-danger" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(m => m.Senha)
+                @Html.EditorFor(m => m.Senha, new { htmlAttributes = new { @class = "form-control", type="password", id = "inpSenha" } })
+                @Html.ValidationMessageFor(m => m.Senha, "", new { @class = "text-danger" })
+            </div>
+            <div class="checkbox" style="margin-bottom: 15px;">
+                @Html.CheckBoxFor(m => m.RegistrarLog, new { id = "inpRegLog" })
+                @Html.LabelFor(m => m.RegistrarLog)
+                @Html.ValidationMessageFor(m => m.RegistrarLog)
+            </div>
+            <button type="button" class="btn btn-primary" id="btnSalvar">Salvar</button>
         </div>
     </div>
 </div>
+
+@section Scripts{
+    <script>
+        $(document).ready(() => {
+            $("#btnSalvar")[0].onclick = () => {
+                let confBd = {};
+                confBd.servidor = $("#inpServidor")[0].value;
+                confBd.database = $("#inpDatabase")[0].value;
+                confBd.usuario = $("#inpUsuario")[0].value;
+                confBd.senha = $("#inpSenha")[0].value;
+                confBd.registrarLog = $("#inpRegLog")[0].checked;
+
+                $.ajax({
+                    method: "GET",
+                    dataType: "json",
+                    url: "/Configuracao/SalvarConfiguracoes?values=" + JSON.stringify(confBd),
+                    success: (data) => {
+                        if (data.result) {
+                            alert("Dados salvos com sucesso!");
+                        }
+                        else {
+                            alert("Erro ao salvar os dados: " + data.error);
+                        }
+                    },
+                    error: (err) => {
+                        alert("Erro ao salvar os dados: " + err.responseText);
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.overrideMimeType("text/plain; charset=x-user-defined");
+                    }
+                })
+            }
+        });
+    </script>
+}
