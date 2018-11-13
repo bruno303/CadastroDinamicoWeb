@@ -1,32 +1,14 @@
-﻿using CadastroDinamico.Web.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using CadastroDinamico.Dominio;
 using CadastroDinamico.Repositorio.SqlClient;
 using UJson = CadastroDinamico.Utils.Json<CadastroDinamico.Dominio.BancoDados>;
+using CadastroDinamico.Core;
 
 namespace CadastroDinamico.Web.Controllers
 {
     public class ConfiguracaoController : Controller
     {
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SalvarConfiguracoes(ConfiguracaoBancoDadosViewModel viewModel)
-        {
-            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
-
-            BancoDados configuracaoBancoDados = new BancoDados()
-            {
-                Servidor = viewModel.Servidor,
-                Database = viewModel.Database,
-                Usuario = viewModel.Usuario,
-                Senha = viewModel.Senha,
-                RegistrarLog = viewModel.RegistrarLog
-            };
-            configurador.AlterarConfiguracaoBancoDados(configuracaoBancoDados);
-            return RedirectToAction("ConfiguracaoBanco", "Home");
-        }
-
-        [HttpGet]
         public JsonResult SalvarConfiguracoes(string values)
         {
             var configurador = new ConfiguradorBancoDados();
@@ -36,6 +18,7 @@ namespace CadastroDinamico.Web.Controllers
             {
                 BancoDados configuracaoBancoDados = json.ConverterParaObjeto(values);
                 configurador.AlterarConfiguracaoBancoDados(configuracaoBancoDados);
+                new ConfiguradorCadastroDinamico().CriarDatabaseAplicacao();
             }
             catch(System.Exception ex)
             {

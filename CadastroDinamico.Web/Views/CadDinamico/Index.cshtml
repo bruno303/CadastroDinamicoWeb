@@ -32,43 +32,71 @@
 
     <div id="container-colunas">
         <div class="row">
-            <div class="col-md-4 col-sm-12 col-lg-4" id="divColunas">
+            <div class="col-md-5 col-sm-12 col-lg-5" id="divColunas">
                 <h2>Colunas</h2>
-                <table id="tblColunas" class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>
-                                Nome
-                            </th>
-                            <th>
-                                Exibir
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="tblColunas" class="table table-sm table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Nome
+                                </th>
+                                <th>
+                                    Exibir
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="col-md-8 col-sm-12 col-lg-8" id="divFk">
+            <div class="col-md-2 col-lg-2"></div>
+            <div class="col-md-5 col-sm-12 col-lg-5" id="divColunasFiltro">
+                <h2>Filtros</h2>
+                <div class="table-responsive">
+                    <table id="tblColunasFiltro" class="table table-sm table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Nome
+                                </th>
+                                <th>
+                                    Usar filtro?
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-lg-12" id="divFk">
                 <h2>Chaves Estrangeiras</h2>
-                <table id="tblChavesEstrangeiras" class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>
-                                Coluna
-                            </th>
-                            <th>
-                                Tabela Referenciada
-                            </th>
-                            <th>
-                                Coluna Referenciada
-                            </th>
-                            <th>
-                                Descrição da tabela
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="tblChavesEstrangeiras" class="table table-sm table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Coluna
+                                </th>
+                                <th>
+                                    Tabela Referenciada
+                                </th>
+                                <th>
+                                    Coluna Referenciada
+                                </th>
+                                <th style="width: 200px;">
+                                    Descrição da tabela
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -81,6 +109,7 @@
 </div>
 
 @section Scripts{
+    <script type="text/javascript" src="~/lib/jquery-blockUI/jquery.blockUI.min.js"></script>
     <environment include="Development">
         <script type="text/javascript" src="~/js/cadDinamicoIndex.js"></script>
     </environment>

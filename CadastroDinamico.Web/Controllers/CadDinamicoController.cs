@@ -3,6 +3,10 @@ using Repo = CadastroDinamico.Repositorio.SqlClient;
 using CadastroDinamico.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using CadastroDinamico.Core;
+using System;
+using System.Data;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -86,7 +90,7 @@ namespace CadastroDinamico.Web.Controllers
                     colunas.Add(new ColunaNomeViewModel()
                     {
                         Name = consulta[contador].Nome,
-                        Visivel = (colVisiveisList?.Contains(consulta[contador].Nome) ?? false)
+                        Visivel = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false)
                     });
                 }
             }
@@ -94,6 +98,7 @@ namespace CadastroDinamico.Web.Controllers
             return Json(colunas);
         }
 
+        [HttpPost]
         public JsonResult GravarConfiguracoesTabela(string dados, string dadosfk)
         {
             Repo.Repositorio repositorio = new Repo.Repositorio();
@@ -140,7 +145,14 @@ namespace CadastroDinamico.Web.Controllers
                     var colunasTabelaReferenciada = repositorio.RetornarColunas(database, schema, consulta[contador].TabelaReferenciada).Select(p => p.Nome).ToList();
                     if (colsList != null)
                     {
-                        colDescricao = colsList.Where(p => p.Split(":")[0].Equals(consulta[contador].Nome)).FirstOrDefault().Split(":")[1];
+                        if (colsList.Where(p => p.Split(":")[0].Equals(consulta[contador].Nome)).FirstOrDefault() != null)
+                        {
+                            colDescricao = colsList.Where(p => p.Split(":")[0].Equals(consulta[contador].Nome)).FirstOrDefault().Split(":")[1];
+                        }
+                        else
+                        {
+                            colDescricao = consulta[contador].Nome;
+                        }
                     }
                     colunas.Add(new ColunaChaveEstrangeiraViewModel()
                     {
@@ -155,5 +167,64 @@ namespace CadastroDinamico.Web.Controllers
 
             return Json(colunas);
         }
+
+        #region Teste
+        public IActionResult TelaDinamica(string database, string schema, string tabela)
+        {
+            var repositorio = new Repo.Repositorio();
+            var dadosTabela = new TabelaCore(tabela, schema, database);
+            
+            try
+            {
+                var result = dadosTabela.Carregar();
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return View("Error", "Home");
+                }
+                var query = dadosTabela.RetornarSelect("", true);
+                var valoresColunas = new Repo.Conexao(new Repo.Repositorio().RetornarConnectionString()).RetornarDados(query);
+                for (int cont = 0; cont < valoresColunas.Columns.Count; cont++)
+                {
+                    dadosTabela.Valores.Add(valoresColunas.Rows[0][cont]);
+                }
+                ViewBag.Valores = dadosTabela.Valores;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return View(dadosTabela);
+        }
+
+        [HttpGet]
+        public async System.Threading.Tasks.Task<FileResult> DownloadHtml(string database, string schema, string tabela)
+        {
+            var path = string.Format("DownloadFiles\\{0}\\", DateTime.Now.ToString("yyyy-MM-dd_HHmmss"));
+            var fileName = tabela + ".html";
+
+            System.IO.Directory.CreateDirectory(path);
+
+            new Utils.Arquivo().EscreverEmArquivo(path + fileName, "teste", false);
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(path + fileName);
+
+            System.IO.File.Delete(path + fileName);
+            System.IO.Directory.Delete(path, true);
+
+            return File(bytes, "multipart/form-data", fileName);
+        }
+
+        public IActionResult GravarItem(IFormCollection formCollection)
+        {
+            var lista = formCollection.ToList();
+            var valores = new Dictionary<string, string>();
+
+            foreach (var item in lista)
+            {
+                valores.Add(item.Key, item.Value[0]);
+            }
+            return View();
+        }
+        #endregion
     }
 }

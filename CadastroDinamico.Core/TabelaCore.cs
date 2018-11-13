@@ -1,4 +1,5 @@
 ﻿using CadastroDinamico.Dominio;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,8 +17,10 @@ namespace CadastroDinamico.Core
         public bool TemChaveEstrangeira { get; set; }
         public int QuantidadeCampos { get; set; }
         public List<Coluna> Colunas { get; set; }
+        public List<object> Valores { get; set; }
+        public List<Coluna> ChavesPrimarias { get; set; }
 
-        private readonly List<string> CamposNaoExibir;
+        private List<string> camposExibir;
 
         #region Construtores
         public TabelaCore(string tabela, string schema, string database)
@@ -25,19 +28,20 @@ namespace CadastroDinamico.Core
             Nome = tabela;
             Schema = schema;
             Database = database;
+            Valores = new List<object>();
         }
 
         public TabelaCore(string tabela, string schema)
         {
             Nome = tabela;
             Schema = schema;
-            CamposNaoExibir = new List<string>();
+            Valores = new List<object>();
         }
 
         public TabelaCore(string tabela)
         {
             Nome = tabela;
-            CamposNaoExibir = new List<string>();
+            Valores = new List<object>();
         }
 
         public TabelaCore() { }
@@ -66,9 +70,13 @@ namespace CadastroDinamico.Core
             try
             {
                 Colunas = repositorio.RetornarColunas(Database, Schema, Nome);
+                TemChavePrimaria = Colunas.Where(p => p.IsChavePrimaria).FirstOrDefault() != null;
+                TemChaveEstrangeira = Colunas.Where(p => p.IsChaveEstrangeira).FirstOrDefault() != null;
+                camposExibir = repositorio.SelecionarColunasVisiveis(Database, Schema, Nome).Split(";").ToList();
+                ChavesPrimarias = repositorio.RetornarColunasChavePrimariaTabela(Nome, Schema, Database);
+                RemoverColunasIgnoradas();
                 QuantidadeCampos = Colunas.Count;
-                TemChavePrimaria = (Colunas.Where(p => p.IsChavePrimaria).FirstOrDefault() != null);
-                TemChaveEstrangeira = (Colunas.Where(p => p.IsChaveEstrangeira).FirstOrDefault() != null);
+                CarregarColunasChaveEstrangeira();
             }
             catch (Exception ex)
             {
@@ -78,7 +86,83 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public DataTable RetornarAmostraDados(List<string> camposNaoExibir)
+        private void CarregarColunasChaveEstrangeira()
+        {
+            /* Carrega SelectList para os campos de chave estrangeira */
+            for (int cont = 0; cont < Colunas.Count; cont++)
+            {
+                if (Colunas[cont].IsChaveEstrangeira)
+                {
+                    Colunas[cont].ListaSelecao = RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciada);
+                }
+            }
+        }
+
+        private void RemoverColunasIgnoradas()
+        {
+            int cont = 0;
+            /* Remove campos que não serão manipulados */
+            while (cont < Colunas.Count)
+            {
+                if (!(camposExibir.Count == 1 && camposExibir[0].Equals(string.Empty)))
+                {
+                    if (!camposExibir.Contains(Colunas[cont].Nome))
+                    {
+                        Colunas.RemoveAt(cont);
+                    }
+                    else
+                    {
+                        cont++;
+                    }
+                }
+                else
+                {
+                    cont++;
+                }
+            }
+        }
+
+        private SelectList RetornarListaTabelaEstrangeira(string tabela, int itemSelecionado)
+        {
+            List<TabelaEstrangeira> itens = null;
+            var repositorio = new SqlClient.Repositorio();
+            string chavePrimaria = "";
+            string descricao = "";
+
+            try
+            {
+                chavePrimaria = repositorio.RetornarColunasChavePrimariaTabela(tabela, Schema, Database)[0].Nome;
+                descricao = repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(Database, Schema, Nome, chavePrimaria);
+                itens = repositorio.SelectTabela(chavePrimaria, descricao, tabela, Schema, Database);
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+            return new SelectList(itens, chavePrimaria, descricao, itemSelecionado);
+        }
+
+        private List<TabelaEstrangeira> RetornarListaTabelaEstrangeira(string tabela)
+        {
+            List<TabelaEstrangeira> itens = null;
+            var repositorio = new SqlClient.Repositorio();
+            string chavePrimaria = "";
+            string descricao = "";
+
+            try
+            {
+                chavePrimaria = repositorio.RetornarColunasChavePrimariaTabela(tabela, Schema, Database)[0].Nome;
+                descricao = repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(Database, Schema, Nome, chavePrimaria);
+                itens = repositorio.SelectTabela(chavePrimaria, descricao, tabela, Schema, Database);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return itens;
+        }
+
+        private DataTable RetornarAmostraDados(List<string> camposNaoExibir)
         {
             return new DataTable();
             //IConfigurador configurador = new Configurador();
@@ -87,17 +171,22 @@ namespace CadastroDinamico.Core
             //return new Conexao(new Configurador().RetornarConfiguracaoBancoDados()).RetornarDados(RetornarSelect(true));
         }
 
-        public string RetornarSelect(bool amostra = false)
+        public string RetornarSelect(string where, bool amostra = false)
         {
             string query = string.Empty;
 
-            query = "SELECT " + (amostra ? "TOP(10) " : "");
+            query = "SELECT " + (amostra ? "TOP(1) " : "");
             foreach (var coluna in Colunas)
             {
                 query += coluna.Nome + ", ";
             }
             query = query.Remove(query.Length - 2, 2);
-            query += string.Format(" FROM {0} WITH(NOLOCK)", Nome);
+            query += string.Format(" FROM {0}.{1}.{2} WITH(NOLOCK)", Database, Schema, Nome);
+
+            if (!string.IsNullOrWhiteSpace(where))
+            {
+                query += " WHERE " + where;
+            }
 
             return query;
         }

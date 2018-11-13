@@ -42,5 +42,17 @@ namespace CadastroDinamico.Utils
 
             return texto;
         }
+
+        public FileInfo[] RetornarArquivosDiretorio(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                return new DirectoryInfo(path).GetFiles();
+            }
+            else
+            {
+                throw new ArgumentException("Diretório informado não existe!", "path");
+            }
+        }
     }
 }

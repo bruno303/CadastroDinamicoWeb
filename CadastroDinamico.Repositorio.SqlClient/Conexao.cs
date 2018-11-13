@@ -42,6 +42,30 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
+        public DataTable RetornarDados(string query, int timeOut)
+        {
+            DataTable retorno = new DataTable();
+            try
+            {
+                var strConnection = RetornarStringConexao() + "Connection Timeout=" + timeOut.ToString() + ";";
+                using (SqlConnection conexao = new SqlConnection(strConnection))
+                {
+                    conexao.Open();
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
+                    {
+                        adapter.SelectCommand.CommandTimeout = timeOut;
+                        adapter.Fill(retorno);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
+        }
+
         public Task<DataTable> RetornarDadosAsync(string query)
         {
             return Task.Run(() =>

@@ -2,20 +2,69 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using Dir = System.IO.Directory;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
     public class Repositorio
     {
-        public void CriarDatabaseAplicacao()
+        private const string DATABASE_NAME = "CAD_DINAMICO";
+
+        public async void CriarObjetosAplicacao(string database, string ansiNullCmd, string quotedIdentCmd)
         {
-            //
+            var arquivo = new Utils.Arquivo();
+            var conexao = new Conexao(RetornarConnectionString(database));
+
+            var files = arquivo.RetornarArquivosDiretorio(Dir.GetParent(Dir.GetCurrentDirectory()) + "\\" + "CadastroDinamico.Dominio\\Scripts");
+            foreach (var file in files)
+            {
+                string texto = arquivo.LerArquivo(file.FullName);
+                if (!string.IsNullOrEmpty(texto))
+                {
+                    await conexao.ExecutarQueryAsync(texto);
+                }
+            }
+        }
+
+        public bool ExisteDatabase(string database)
+        {
+            var conexao = new Conexao(RetornarConnectionString());
+            try
+            {
+                return conexao.RetornarDados("SELECT database_id FROM sys.databases WITH(NOLOCK) WHERE name = '" + database + "'").Rows.Count > 0;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+        }
+
+        public void CriarDatabase(string database)
+        {
+            var conexao = new Conexao(RetornarConnectionString());
+            try
+            {
+                conexao.ExecutarQuery("CREATE DATABASE " + database);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public string RetornarConnectionString()
         {
             ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
             BancoDados configuracao = configurador.RetornarConfiguracaoBancoDados();
+            return configuracao.ToString();
+        }
+
+        public string RetornarConnectionString(string database)
+        {
+            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
+            BancoDados configuracao = configurador.RetornarConfiguracaoBancoDados();
+            configuracao.Database = database;
             return configuracao.ToString();
         }
 
@@ -28,7 +77,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             try
             {
                 string query = "SELECT NAME FROM MASTER.SYS.DATABASES";
-                dados = conexao.RetornarDados(query);
+                dados = conexao.RetornarDados(query, 7);
                 if (dados.Rows.Count > 0)
                 {
                     for (int contador = 0; contador < dados.Rows.Count; contador++)
@@ -52,7 +101,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = " EXEC CAD_DINAMICO.DBO.PRC_SEL_SCHEMAS '" + database + "'";
+                string query = " EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_SCHEMAS '" + database + "'";
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -77,7 +126,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_TABELAS '{0}', '{1}' ", database, schema);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_TABELAS '{0}', '{1}' ", database, schema);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -102,7 +151,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_DADOS_TABELA '{0}', '{1}', '{2}' ", tabela, schema, database);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_DADOS_TABELA '{0}', '{1}', '{2}' ", tabela, schema, database);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -141,7 +190,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -164,7 +213,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -187,7 +236,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -209,7 +258,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
@@ -230,13 +279,79 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = string.Format(" EXEC CAD_DINAMICO.DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}' ",
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}' ",
                     id, database, schema, table, colVisivies, colChave);
                 conexao.ExecutarQuery(query);
             }
             catch (Exception ex)
             {
                 retorno = ex.Message;
+            }
+            return retorno;
+        }
+
+        public List<TabelaEstrangeira> SelectTabela(string chavePrimaria, string descricao, string tabela, string schema, string database)
+        {
+            var retorno = new List<TabelaEstrangeira>();
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                var consulta = conexao.RetornarDados(string.Format("SELECT {0}, {1} FROM {2}.{3}.{4}", chavePrimaria, descricao, database, schema, tabela));
+                if ((consulta?.Rows?.Count ?? 0) > 0)
+                {
+                    for (int cont = 0; cont < consulta.Rows.Count; cont++)
+                    {
+                        retorno.Add(new TabelaEstrangeira()
+                        {
+                            ChavePrimaria = Convert.ToInt32(consulta.Rows[cont][0].ToString()),
+                            Descricao = consulta.Rows[cont][1].ToString()
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return retorno;
+        }
+
+        public List<Coluna> RetornarColunasChavePrimariaTabela(string tabela, string schema, string database)
+        {
+            List<Coluna> colChavePrimaria = null;
+            colChavePrimaria = RetornarColunas(database, schema, tabela).Where(p => p.IsChavePrimaria).ToList();
+            return colChavePrimaria;
+        }
+
+        public string SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(string database, string schema, string tabela, string chavePrimaria)
+        {
+            DataTable dados = null;
+            string colunas = string.Empty;
+            string retorno = string.Empty;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                int id = SelecionarIdConfiguracaoTabela(database, schema, tabela);
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    colunas = dados.Rows[0][5].ToString();
+                    var colunasSplit = colunas.Split(";");
+                    for (int cont = 0; cont < colunasSplit.Length && retorno == string.Empty; cont++)
+                    {
+                        if (colunasSplit[cont].Split(":")[0].Equals(chavePrimaria))
+                        {
+                            retorno = colunasSplit[cont].Split(":")[1];
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
             return retorno;
         }

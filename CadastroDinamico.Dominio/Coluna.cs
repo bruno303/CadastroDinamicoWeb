@@ -1,4 +1,7 @@
-﻿namespace CadastroDinamico.Dominio
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
+
+namespace CadastroDinamico.Dominio
 {
     public class Coluna
     {
@@ -14,5 +17,6 @@
         public bool IsChaveEstrangeira { get; set; }
         public string TabelaReferenciada { get; set; }
         public string ColunaReferenciada { get; set; }
+        public List<TabelaEstrangeira> ListaSelecao { get; set; }
     }
 }

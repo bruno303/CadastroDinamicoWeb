@@ -1,0 +1,114 @@
+﻿
+@{
+    ViewData["Title"] = "TelaDinamica";
+}
+@model CadastroDinamico.Core.TabelaCore
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Cadastro Dinâmico</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        </div>
+        <div class="col-md-12">
+            <form method="post" action="/CadDinamico/GravarItem/">
+                @Html.AntiForgeryToken()
+
+                @if (Model.QuantidadeCampos > 0)
+                {
+                    for (int cont = 0; cont < Model.QuantidadeCampos; cont++)
+                    {
+                        var nome = "inpColuna" + (cont + 1).ToString();
+
+                        if (Model.Colunas[cont].IsChaveEstrangeira)
+                        {
+                            <div class="form-group">
+                                <label for="@nome">
+                                    @Model.Colunas[cont].Nome
+                                </label>
+                                <select name="@nome" id="@nome" class="form-control">
+                                    @for (int cont2 = 0; cont2 < Model.Colunas[cont].ListaSelecao.Count; cont2++)
+                                    {
+                                        if (Model.Colunas[cont].ListaSelecao[cont2].ChavePrimaria.ToString() == @ViewBag.Valores[cont].ToString())
+                                        {
+                                            <option selected="selected" value="@Model.Colunas[cont].ListaSelecao[cont2].ChavePrimaria">@Model.Colunas[cont].ListaSelecao[cont2].Descricao</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@Model.Colunas[cont].ListaSelecao[cont2].ChavePrimaria">@Model.Colunas[cont].ListaSelecao[cont2].Descricao</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "INT" ||
+                                 Model.Colunas[cont].Tipo.ToUpper() == "BIGINT" ||
+                                 Model.Colunas[cont].Tipo.ToUpper() == "SMALLINT" ||
+                                 Model.Colunas[cont].Tipo.ToUpper() == "TINYINT")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">
+                                    @Model.Colunas[cont].Nome
+                                </label>
+                                <input type="number" class="form-control" id="@nome"
+                                       name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "DATETIME")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">
+                                    @Model.Colunas[cont].Nome
+                                </label>
+                                <input type="datetime" class="form-control" id="@nome"
+                                       name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "DATE")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">
+                                    @Model.Colunas[cont].Nome
+                                </label>
+                                <input type="date" class="form-control" id="@nome"
+                                       name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "TIME")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">
+                                    @Model.Colunas[cont].Nome
+                                </label>
+                                <input type="time" class="form-control" id="@nome"
+                                       name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "BIT")
+                        {
+                            <div class="form-group">
+                                <div class="checkbox" style="margin-bottom: 15px;">
+                                    <input type="checkbox" id="@nome" name="@nome" value="@ViewBag.Valores[cont].ToString()">
+                                    <label for="@nome">@Model.Colunas[cont].Nome</label>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "VARCHAR")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">@Model.Colunas[cont].Nome</label>
+                                <input type="text" class="form-control" id="@nome" name="@nome" value="@ViewBag.Valores[cont].ToString()">
+                            </div>
+                        }
+                    }
+                }
+
+                <button type="submit" class="btn btn-primary" id="btnSalvar">Salvar</button>
+            </form>
+        </div>
+    </div>
+</div>
