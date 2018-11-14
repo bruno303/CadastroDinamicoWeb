@@ -1,6 +1,7 @@
 ﻿//Geral
 $(document).ready(() => {
     $("#divColunas").attr('hidden', true);
+    $("#divColunasFiltro").attr('hidden', true);
     $("#divFk").attr('hidden', true);
 
     consultarDatabases();
@@ -8,8 +9,10 @@ $(document).ready(() => {
     $("#selDatabases").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
+        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
+        $("#tblColunasFiltro > tbody tr").remove();
         $("#selSchemas > option").remove();
         consultarSchemas();
     });
@@ -17,8 +20,10 @@ $(document).ready(() => {
     $("#selSchemas").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
+        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
+        $("#tblColunasFiltro > tbody tr").remove();
         $("#selTabelas > option").remove();
         consultarTabelas();
     });
@@ -26,8 +31,10 @@ $(document).ready(() => {
     $("#selTabelas").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
+        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
+        $("#tblColunasFiltro > tbody tr").remove();
         consultarColunas();
     });
 });
@@ -57,9 +64,20 @@ function successConsultarColunas(data) {
     $("#tblColunas > tbody tr").remove();
     $.each(data, function (i, coluna) {
         $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
-        (coluna.visivel ? 'checked="checked" ' : '/></td ></tr >'));
+        (coluna.marcado ? 'checked="checked" ' : '/></td ></tr >'));
     });
     consultarColunasChaveEstrangeira();
+}
+
+function successConsultarColunasFiltro(data) {
+    if (data.length > 0) {
+        $('#divColunasFiltro').attr('hidden', false);
+    }
+    $("#tblColunasFiltro > tbody tr").remove();
+    $.each(data, function (i, coluna) {
+        $("#tblColunasFiltro > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
+        (coluna.usar ? 'checked="checked" ' : '/></td ></tr >'));
+    });
 }
 
 function successConsultaChavesEstrangeiras(data) {
@@ -149,11 +167,34 @@ function consultarColunas() {
                 awaitLoad(true);
             }
         });
+
+        $.ajax({
+            method: "GET",
+            dataType: "JSON",
+            url: "/CadDinamico/SelecionarColunasFiltro?database=" + $("#selDatabases")[0].value +
+                "&schema=" + $("#selSchemas")[0].value +
+                "&tabela=" + $("#selTabelas")[0].value,
+            success: function (data) {
+                successConsultarColunasFiltro(data);
+            },
+            error: function (err) {
+                alert("Houve um erro ao consultar as colunas de filtro.");
+            },
+            complete: (jqXHR) => {
+                awaitLoad(false);
+            },
+            beforeSend: () => {
+                bloquearTela();
+                awaitLoad(true);
+            }
+        });
     }
     else {
         desbloquearTela();
         $("#divColunas").attr('hidden', true);
+        $("#divColunasFiltro").attr('hidden', true);
         $("#tblColunas > tbody tr").remove();
+        $("#tblColunasFiltro > tbody tr").remove();
     }
 }
 
@@ -245,14 +286,19 @@ function gravar() {
         $.ajax({
             method: "post",
             contentType: "application/x-www-form-urlencoded",
-            data: { "dados": vdados, "dadosfk": vdadosfk },
+            data: { "dados": vdados, "dadosfk": vdadosfk, "dadosfiltro": "" },
             dataType: "json",
             url: "/CadDinamico/GravarConfiguracoesTabela",
-            sucess: function (data) {
-                alert("Configurações salvas com sucesso!");
+            success: function (data) {
+                if (data.result) {
+                    alert("Configurações salvas com sucesso!");
+                }
+                else {
+                    alert("Erro ao salvar as configurações: " + data.message);
+                }
             },
             error: function (err) {
-                alert("Erro ao salvar as configurações.");
+                alert("Erro ao salvar as configurações: " + err.message);
             }
         });
     }

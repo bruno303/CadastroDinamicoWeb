@@ -90,7 +90,40 @@ namespace CadastroDinamico.Web.Controllers
                     colunas.Add(new ColunaNomeViewModel()
                     {
                         Name = consulta[contador].Nome,
-                        Visivel = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false)
+                        Marcado = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false)
+                    });
+                }
+            }
+
+            return Json(colunas);
+        }
+
+        public JsonResult SelecionarColunasFiltro(string database, string schema, string tabela)
+        {
+            Repo.Repositorio repositorio = new Repo.Repositorio();
+            List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
+            var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
+            string colFiltro = string.Empty;
+            List<string> colFiltroList = null;
+
+            if (id > 0)
+            {
+                colFiltro = repositorio.SelecionarColunasFiltro(id);
+                if (!string.IsNullOrEmpty(colFiltro))
+                {
+                    colFiltroList = colFiltro.Split(";").ToList();
+                }
+            }
+
+            var consulta = repositorio.RetornarColunas(database, schema, tabela);
+            if (consulta.Count > 0)
+            {
+                for (int contador = 0; contador < consulta.Count; contador++)
+                {
+                    colunas.Add(new ColunaNomeViewModel()
+                    {
+                        Name = consulta[contador].Nome,
+                        Marcado = (id <= 0) || (colFiltroList?.Contains(consulta[contador].Nome) ?? false)
                     });
                 }
             }
@@ -99,22 +132,33 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         [HttpPost]
-        public JsonResult GravarConfiguracoesTabela(string dados, string dadosfk)
+        public JsonResult GravarConfiguracoesTabela(string dados, string dadosfk, string dadosfiltro)
         {
-            Repo.Repositorio repositorio = new Repo.Repositorio();
-            if (!string.IsNullOrEmpty(dados))
+            try
             {
-                var dadosBanco = dados.Split("|")[0];
-                var colunas = dados.Split("|")[1];
-                var database = dadosBanco.Split(";")[0];
-                var schema = dadosBanco.Split(";")[1];
-                var tabela = dadosBanco.Split(";")[2];
+                Repo.Repositorio repositorio = new Repo.Repositorio();
+                if (!string.IsNullOrEmpty(dados))
+                {
+                    var dadosBanco = dados.Split("|")[0];
+                    var colunas = dados.Split("|")[1];
+                    var database = dadosBanco.Split(";")[0];
+                    var schema = dadosBanco.Split(";")[1];
+                    var tabela = dadosBanco.Split(";")[2];
 
-                var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
-                repositorio.SalvarConfiguracoesTabela(id, database, schema, tabela, colunas, dadosfk);
+                    var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
+                    repositorio.SalvarConfiguracoesTabela(id, database, schema, tabela, colunas, dadosfk, dadosfiltro);
+                }
+                else
+                {
+                    return Json(new { result = false, message = "Dados vazios!" });
+                }
+            }
+            catch(Exception ex)
+            {
+                return Json(new { result = false, message = ex.Message });
             }
 
-            return Json(null);
+            return Json(new { result = true, message = string.Empty });
         }
 
         public JsonResult SelecionarColunasChaveEstrangeira(string database, string schema, string tabela)

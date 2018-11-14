@@ -143,6 +143,52 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return tabelas;
         }
 
+        public string SelecionarColunasFiltro(string database, string schema, string tabela)
+        {
+            DataTable dados = null;
+            string colFiltro = string.Empty;
+            int id = 0;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    id = Convert.ToInt32(dados.Rows[0][0].ToString());
+                }
+                colFiltro = SelecionarColunasVisiveis(id);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return colFiltro;
+        }
+
+        public string SelecionarColunasFiltro(int id)
+        {
+            DataTable dados = null;
+            string colFiltro = string.Empty;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    colFiltro = dados.Rows[0][5].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return colFiltro;
+        }
+
         public List<Coluna> RetornarColunas(string database, string schema, string tabela)
         {
             DataTable dados = null;
@@ -272,15 +318,15 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colVisiveis;
         }
 
-        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table, string colVisivies, string colChave)
+        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table, string colVisiveis, string colChave, string colFiltros)
         {
             var retorno = string.Empty;
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
-                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}' ",
-                    id, database, schema, table, colVisivies, colChave);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}', '{6}' ",
+                    id, database, schema, table, colVisiveis, colChave, colFiltros ?? string.Empty);
                 conexao.ExecutarQuery(query);
             }
             catch (Exception ex)
