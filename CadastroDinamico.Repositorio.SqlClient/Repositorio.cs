@@ -86,9 +86,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return databases;
         }
@@ -111,9 +111,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return schemas;
         }
@@ -136,9 +136,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return tabelas;
         }
@@ -160,9 +160,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 }
                 colFiltro = SelecionarColunasVisiveis(id);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colFiltro;
         }
@@ -179,12 +179,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
-                    colFiltro = dados.Rows[0][5].ToString();
+                    colFiltro = dados.Rows[0][6].ToString();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colFiltro;
         }
@@ -221,9 +221,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colunas;
         }
@@ -243,9 +243,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     codigo = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return codigo;
         }
@@ -267,9 +267,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 }
                 colVisiveis = SelecionarColunasVisiveis(id);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colVisiveis;
         }
@@ -289,9 +289,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     colVisiveis = dados.Rows[0][4].ToString();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colVisiveis;
         }
@@ -311,9 +311,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     colVisiveis = dados.Rows[0][5].ToString();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return colVisiveis;
         }
@@ -395,9 +395,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             return retorno;
         }

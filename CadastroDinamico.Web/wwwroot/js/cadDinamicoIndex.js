@@ -1,7 +1,6 @@
 ﻿//Geral
 $(document).ready(() => {
     $("#divColunas").attr('hidden', true);
-    $("#divColunasFiltro").attr('hidden', true);
     $("#divFk").attr('hidden', true);
 
     consultarDatabases();
@@ -9,10 +8,8 @@ $(document).ready(() => {
     $("#selDatabases").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
-        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
-        $("#tblColunasFiltro > tbody tr").remove();
         $("#selSchemas > option").remove();
         consultarSchemas();
     });
@@ -20,10 +17,8 @@ $(document).ready(() => {
     $("#selSchemas").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
-        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
-        $("#tblColunasFiltro > tbody tr").remove();
         $("#selTabelas > option").remove();
         consultarTabelas();
     });
@@ -31,10 +26,8 @@ $(document).ready(() => {
     $("#selTabelas").change(() => {
         $("#divFk").attr('hidden', true);
         $("#divColunas").attr('hidden', true);
-        $("#divColunasFiltro").attr('hidden', true);
         $("#tblChavesEstrangeiras > tbody tr").remove();
         $("#tblColunas > tbody tr").remove();
-        $("#tblColunasFiltro > tbody tr").remove();
         consultarColunas();
     });
 });
@@ -63,21 +56,15 @@ function successConsultarColunas(data) {
     }
     $("#tblColunas > tbody tr").remove();
     $.each(data, function (i, coluna) {
-        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
-        (coluna.marcado ? 'checked="checked" ' : '/></td ></tr >'));
+        let desabilitado = ((!coluna.podeOcultar) ? ' disabled ' : '');
+
+        $("#tblColunas > tbody").append(
+            '<tr><td>' + coluna.name + '</td>' + 
+                '<td class="text-center"><input type="checkbox" ' + desabilitado + (coluna.visivel ? 'checked="checked" ' : '') + '/></td>' +
+                '<td class="text-center"><input type="checkbox" ' + (coluna.filtro ? 'checked="checked" ' : '') + '/></td>' +
+            '</tr>');
     });
     consultarColunasChaveEstrangeira();
-}
-
-function successConsultarColunasFiltro(data) {
-    if (data.length > 0) {
-        $('#divColunasFiltro').attr('hidden', false);
-    }
-    $("#tblColunasFiltro > tbody tr").remove();
-    $.each(data, function (i, coluna) {
-        $("#tblColunasFiltro > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" ' +
-        (coluna.usar ? 'checked="checked" ' : '/></td ></tr >'));
-    });
 }
 
 function successConsultaChavesEstrangeiras(data) {
@@ -91,7 +78,7 @@ function successConsultaChavesEstrangeiras(data) {
             opcoes += '<option value="' + col + '">' + col + '</option>'
         });
         $("#tblChavesEstrangeiras > tbody").append('<tr><td>' + coluna.nome + '</td><td>' + coluna.tabelaReferenciada +
-            '</td><td>' + coluna.colunaReferenciada + '</td><td><select class="custom-select" id="' + 'select-' + i +
+            '.' + coluna.colunaReferenciada + '</td><td><select class="custom-select" id="' + 'select-' + i +
             '">' + opcoes + '</select></tr>');
         $('#select-' + i)[0].selectedIndex = coluna.indiceColTabelaReferenciada;
     });
@@ -167,34 +154,11 @@ function consultarColunas() {
                 awaitLoad(true);
             }
         });
-
-        $.ajax({
-            method: "GET",
-            dataType: "JSON",
-            url: "/CadDinamico/SelecionarColunasFiltro?database=" + $("#selDatabases")[0].value +
-                "&schema=" + $("#selSchemas")[0].value +
-                "&tabela=" + $("#selTabelas")[0].value,
-            success: function (data) {
-                successConsultarColunasFiltro(data);
-            },
-            error: function (err) {
-                alert("Houve um erro ao consultar as colunas de filtro.");
-            },
-            complete: (jqXHR) => {
-                awaitLoad(false);
-            },
-            beforeSend: () => {
-                bloquearTela();
-                awaitLoad(true);
-            }
-        });
     }
     else {
         desbloquearTela();
         $("#divColunas").attr('hidden', true);
-        $("#divColunasFiltro").attr('hidden', true);
         $("#tblColunas > tbody tr").remove();
-        $("#tblColunasFiltro > tbody tr").remove();
     }
 }
 
@@ -260,7 +224,7 @@ function gravar() {
     let linhas = $("#tblColunas tbody > tr");
     $.each(linhas, (i, registro) => {
         if (registro.getElementsByTagName("input")[0].checked) {
-            vdados += registro.innerHTML.replace(/<\/td>/g, "").split("<td>")[1] + ';';
+            vdados += registro.innerHTML.replace(/<\/td>/g, "").replace('<td class="text-center">', '<td>').split('<td>')[1] + ';';
         }
     });
     if (vdados !== '') {
@@ -282,11 +246,24 @@ function gravar() {
         if (vdadosfk !== '') {
             vdadosfk = vdadosfk.substr(0, vdadosfk.length - 1);
         }
+
+        /* Dados colunas de filtro */
+        let vdadosfiltro = '';
+        linhas = $("#tblColunas tbody > tr");
+        $.each(linhas, (i, registro) => {
+            if (registro.getElementsByTagName("input")[1].checked) {
+                vdadosfiltro += registro.innerHTML.replace(/<\/td>/g, "").replace('<td class="text-center">', '<td>').split('<td>')[1] + ';';
+            }
+        });
+        if (vdadosfiltro !== '') {
+            vdadosfiltro = vdadosfiltro.substr(0, vdadosfiltro.length - 1);
+        }
+
         /* Enviar por ajax */
         $.ajax({
             method: "post",
             contentType: "application/x-www-form-urlencoded",
-            data: { "dados": vdados, "dadosfk": vdadosfk, "dadosfiltro": "" },
+            data: { "dados": vdados, "dadosfk": vdadosfk, "dadosfiltro": vdadosfiltro },
             dataType: "json",
             url: "/CadDinamico/GravarConfiguracoesTabela",
             success: function (data) {

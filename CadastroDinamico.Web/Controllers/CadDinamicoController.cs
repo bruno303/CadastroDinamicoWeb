@@ -71,7 +71,9 @@ namespace CadastroDinamico.Web.Controllers
             List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
             var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
             string colVisiveis = string.Empty;
+            string colFiltro = string.Empty;
             List<string> colVisiveisList = null;
+            List<string> colFiltroList = null;
 
             if (id > 0)
             {
@@ -80,34 +82,7 @@ namespace CadastroDinamico.Web.Controllers
                 {
                     colVisiveisList = colVisiveis.Split(";").ToList();
                 }
-            }
 
-            var consulta = repositorio.RetornarColunas(database, schema, tabela);
-            if (consulta.Count > 0)
-            {
-                for (int contador = 0; contador < consulta.Count; contador++)
-                {
-                    colunas.Add(new ColunaNomeViewModel()
-                    {
-                        Name = consulta[contador].Nome,
-                        Marcado = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false)
-                    });
-                }
-            }
-
-            return Json(colunas);
-        }
-
-        public JsonResult SelecionarColunasFiltro(string database, string schema, string tabela)
-        {
-            Repo.Repositorio repositorio = new Repo.Repositorio();
-            List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
-            var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
-            string colFiltro = string.Empty;
-            List<string> colFiltroList = null;
-
-            if (id > 0)
-            {
                 colFiltro = repositorio.SelecionarColunasFiltro(id);
                 if (!string.IsNullOrEmpty(colFiltro))
                 {
@@ -123,13 +98,49 @@ namespace CadastroDinamico.Web.Controllers
                     colunas.Add(new ColunaNomeViewModel()
                     {
                         Name = consulta[contador].Nome,
-                        Marcado = (id <= 0) || (colFiltroList?.Contains(consulta[contador].Nome) ?? false)
+                        Visivel = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false),
+                        PodeOcultar = consulta[contador].AceitaNull,
+                        Filtro = (id <= 0) || (colFiltroList?.Contains(consulta[contador].Nome) ?? false)
                     });
                 }
             }
 
             return Json(colunas);
         }
+
+        // public JsonResult SelecionarColunasFiltro(string database, string schema, string tabela)
+        // {
+        //     Repo.Repositorio repositorio = new Repo.Repositorio();
+        //     List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
+        //     var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
+        //     string colFiltro = string.Empty;
+        //     List<string> colFiltroList = null;
+
+        //     if (id > 0)
+        //     {
+        //         colFiltro = repositorio.SelecionarColunasFiltro(id);
+        //         if (!string.IsNullOrEmpty(colFiltro))
+        //         {
+        //             colFiltroList = colFiltro.Split(";").ToList();
+        //         }
+        //     }
+
+        //     var consulta = repositorio.RetornarColunas(database, schema, tabela);
+        //     if (consulta.Count > 0)
+        //     {
+        //         for (int contador = 0; contador < consulta.Count; contador++)
+        //         {
+        //             colunas.Add(new ColunaNomeViewModel()
+        //             {
+        //                 Name = consulta[contador].Nome,
+        //                 Filtro = (id <= 0) || (colFiltroList?.Contains(consulta[contador].Nome) ?? false),
+        //                 PodeDesmarcar = true
+        //             });
+        //         }
+        //     }
+
+        //     return Json(colunas);
+        // }
 
         [HttpPost]
         public JsonResult GravarConfiguracoesTabela(string dados, string dadosfk, string dadosfiltro)
