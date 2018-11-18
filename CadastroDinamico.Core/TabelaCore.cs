@@ -182,7 +182,7 @@ namespace CadastroDinamico.Core
             }
             query = query.Remove(query.Length - 2, 2);
             query += string.Format(" FROM {0}.{1}.{2} WITH(NOLOCK)", Database, Schema, Nome);
-
+            
             if (!string.IsNullOrWhiteSpace(where))
             {
                 query += " WHERE " + where;

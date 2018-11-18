@@ -90,7 +90,7 @@ function consultarDatabases() {
     $.ajax({
         method: "GET",
         dataType: "JSON",
-        url: "/CadDinamico/SelecionarDatabases",
+        url: "/Configuracao/SelecionarDatabases",
         success: function (data) {
             successConsultaDatabase(data);
         },
@@ -105,7 +105,7 @@ function consultarSchemas() {
     $.ajax({
         method: "GET",
         dataType: "JSON",
-        url: "/CadDinamico/SelecionarSchemas?database=" + $("#selDatabases")[0].value,
+        url: "/Configuracao/SelecionarSchemas?database=" + $("#selDatabases")[0].value,
         success: function (data) {
             successConsultaSchema(data);
         },
@@ -120,7 +120,7 @@ function consultarTabelas() {
     $.ajax({
         method: "GET",
         dataType: "JSON",
-        url: "/CadDinamico/SelecionarTabelas?database=" + $("#selDatabases")[0].value +
+        url: "/Configuracao/SelecionarTabelas?database=" + $("#selDatabases")[0].value +
             "&schema=" + $("#selSchemas")[0].value,
         success: function (data) {
             successConsultaTabela(data);
@@ -137,7 +137,7 @@ function consultarColunas() {
         $.ajax({
             method: "GET",
             dataType: "JSON",
-            url: "/CadDinamico/SelecionarColunas?database=" + $("#selDatabases")[0].value +
+            url: "/Configuracao/SelecionarColunas?database=" + $("#selDatabases")[0].value +
                 "&schema=" + $("#selSchemas")[0].value +
                 "&tabela=" + $("#selTabelas")[0].value,
             success: function (data) {
@@ -167,7 +167,7 @@ function consultarColunasChaveEstrangeira() {
         $.ajax({
             method: "GET",
             dataType: "JSON",
-            url: "/CadDinamico/SelecionarColunasChaveEstrangeira?database=" + $("#selDatabases")[0].value +
+            url: "/Configuracao/SelecionarColunasChaveEstrangeira?database=" + $("#selDatabases")[0].value +
                 "&schema=" + $("#selSchemas")[0].value +
                 "&tabela=" + $("#selTabelas")[0].value,
             error: function (err) {
@@ -265,7 +265,7 @@ function gravar() {
             contentType: "application/x-www-form-urlencoded",
             data: { "dados": vdados, "dadosfk": vdadosfk, "dadosfiltro": vdadosfiltro },
             dataType: "json",
-            url: "/CadDinamico/GravarConfiguracoesTabela",
+            url: "/Configuracao/GravarConfiguracoesTabela",
             success: function (data) {
                 if (data.result) {
                     alert("Configurações salvas com sucesso!");
@@ -279,4 +279,12 @@ function gravar() {
             }
         });
     }
+}
+
+function cadDinamico() {
+    let database = document.getElementById("selDatabases").value;
+    let schema = document.getElementById("selSchemas").value;
+    let tabela = document.getElementById("selTabelas").value;
+
+    window.location.href = `/CadDinamico/Index?database=${database}&schema=${schema}&tabela=${tabela}`;
 }

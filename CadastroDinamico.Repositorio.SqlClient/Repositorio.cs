@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Dir = System.IO.Directory;
 
 namespace CadastroDinamico.Repositorio.SqlClient
@@ -16,10 +17,10 @@ namespace CadastroDinamico.Repositorio.SqlClient
             var arquivo = new Utils.Arquivo();
             var conexao = new Conexao(RetornarConnectionString(database));
 
-            var files = arquivo.RetornarArquivosDiretorio(Dir.GetParent(Dir.GetCurrentDirectory()) + "\\" + "CadastroDinamico.Dominio\\Scripts");
+            var files = await arquivo.RetornarArquivosDiretorioAsync(Dir.GetParent(Dir.GetCurrentDirectory()) + "\\" + "CadastroDinamico.Dominio\\Scripts");
             foreach (var file in files)
             {
-                string texto = arquivo.LerArquivo(file.FullName);
+                string texto = await arquivo.LerArquivoAsync(file.FullName);
                 if (!string.IsNullOrEmpty(texto))
                 {
                     await conexao.ExecutarQueryAsync(texto);
@@ -57,6 +58,13 @@ namespace CadastroDinamico.Repositorio.SqlClient
         {
             ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
             BancoDados configuracao = configurador.RetornarConfiguracaoBancoDados();
+            return configuracao.ToString();
+        }
+
+        public async Task<string> RetornarConnectionStringAsync()
+        {
+            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
+            BancoDados configuracao = await configurador.RetornarConfiguracaoBancoDadosAsync();
             return configuracao.ToString();
         }
 

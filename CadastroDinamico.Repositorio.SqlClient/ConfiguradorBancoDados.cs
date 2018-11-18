@@ -1,6 +1,7 @@
 ﻿using CadastroDinamico.Dominio;
 using CadastroDinamico.Utils;
 using System;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
@@ -45,12 +46,25 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public System.Threading.Tasks.Task<string> AlterarConfiguracaoBDAsync(BancoDados configuracao)
+        public async Task<BancoDados> RetornarConfiguracaoBancoDadosAsync()
         {
-            return System.Threading.Tasks.Task.Run(() =>
+            BancoDados configuracao = null;
+            Criptografia criptografia = new Criptografia();
+            string json = string.Empty;
+
+            try
             {
-                return AlterarConfiguracaoBancoDados(configuracao);
-            });
+                Arquivo arquivo = new Arquivo();
+                json = await arquivo.LerArquivoAsync(Path);
+                json = criptografia.Descriptografar(json);
+                configuracao = new Json<BancoDados>().ConverterParaObjeto(json);
+            }
+            catch (Exception)
+            {
+                configuracao = null;
+            }
+
+            return configuracao;
         }
 
         public BancoDados RetornarConfiguracaoBancoDados()
@@ -74,17 +88,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return configuracao;
         }
 
-        public System.Threading.Tasks.Task<BancoDados> RetornarConfiguracaoBDAsync()
+        public async Task<bool> ConfiguracaoValidaAsync()
         {
-            return System.Threading.Tasks.Task.Run(() =>
-            {
-                return RetornarConfiguracaoBancoDados();
-            });
-        }
-
-        public bool ConfiguracaoValida()
-        {
-            return RetornarConfiguracaoBancoDados() != null;
+            return (await RetornarConfiguracaoBancoDadosAsync()) != null;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Utils
 {
@@ -18,7 +19,26 @@ namespace CadastroDinamico.Utils
             }
             catch (Exception ex)
             {
-                retorno = "Erro em EscreverEmArquivo. Mensage: " + ex.Message;
+                retorno = "Erro em EscreverEmArquivo. Mensagem: " + ex.Message;
+            }
+
+            return retorno;
+        }
+
+        public async Task<string> EscreverEmArquivoAsync(string path, string texto, bool append)
+        {
+            string retorno = string.Empty;
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(path, append))
+                {
+                    await writer.WriteAsync(texto);
+                }
+            }
+            catch (Exception ex)
+            {
+                retorno = "Erro em EscreverEmArquivo. Mensagem: " + ex.Message;
             }
 
             return retorno;
@@ -43,11 +63,31 @@ namespace CadastroDinamico.Utils
             return texto;
         }
 
-        public FileInfo[] RetornarArquivosDiretorio(string path)
+        public async Task<string> LerArquivoAsync(string path)
+        {
+            string texto = string.Empty;
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    texto = await reader.ReadToEndAsync();
+                }
+            }
+            catch (Exception)
+            {
+                texto = string.Empty;
+            }
+
+            return texto;
+        }
+
+        public async Task<FileInfo[]> RetornarArquivosDiretorioAsync(string path)
         {
             if (Directory.Exists(path))
             {
-                return new DirectoryInfo(path).GetFiles();
+                var task = Task.Factory.StartNew(() => new DirectoryInfo(path).GetFiles());
+                return await task;
             }
             else
             {

@@ -34,7 +34,7 @@
                     @Html.ValidationMessageFor(m => m.RegistrarLog)
                 </div>
             </div>
-            <button type="button" class="btn btn-primary" id="btnSalvar">Salvar</button>
+            <button type="button" class="btn btn-success" id="btnSalvar">Salvar</button>
         </div>
     </div>
 </div>
@@ -53,7 +53,7 @@
                 $.ajax({
                     method: "post",
                     dataType: "json",
-                    url: "/Configuracao/SalvarConfiguracoes",
+                    url: "/Configuracao/SalvarConfiguracoesBancoDados",
                     data: { "values": JSON.stringify(confBd) },
                     contentType: "application/x-www-form-urlencoded",
                     success: (data) => {

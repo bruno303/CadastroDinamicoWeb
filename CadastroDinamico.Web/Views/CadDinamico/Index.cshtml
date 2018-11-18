@@ -1,10 +1,4 @@
-﻿@section StyleSheets {
-    <style>
-        h2 {
-            padding-bottom: 10px;
-        }
-    </style>
-}
+﻿<h2>@ViewBag.Title</h2>
 
 <div class="container-fluid">
     <div class="row">
@@ -29,72 +23,4 @@
     </div>
 
     <hr />
-
-    <div id="container-colunas">
-        <div class="row">
-            <div class="col-md-12 col-sm-12 col-lg-12" id="divColunas">
-                <h2>Colunas</h2>
-                <div class="table-responsive">
-                    <table id="tblColunas" class="table table-sm table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th>
-                                    Nome
-                                </th>
-                                <th class="text-center">
-                                    Exibir ?
-                                </th>
-                                <th class="text-center">
-                                    Usar Filtro ?
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <hr />
-
-        <div class="row">
-            <div class="col-md-12 col-sm-12 col-lg-12" id="divFk">
-                <h2>Chaves Estrangeiras</h2>
-                <div class="table-responsive">
-                    <table id="tblChavesEstrangeiras" class="table table-sm table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th>
-                                    Coluna
-                                </th>
-                                <th>
-                                    Referência
-                                </th>
-                                <th>
-                                    Descrição da tabela
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <button class="btn-block btn-success btn-block btn-lg" onclick="gravar()">Gravar</button>
-        </div>
-    </div>
-
 </div>
-
-@section Scripts{
-    <script type="text/javascript" src="~/lib/jquery-blockUI/jquery.blockUI.min.js"></script>
-    <environment include="Development">
-        <script type="text/javascript" src="~/js/cadDinamicoIndex.js"></script>
-    </environment>
-    <environment exclude="Development">
-        <script type="text/javascript" src="~/js/cadDinamicoIndex.min.js"></script>
-    </environment>
-}
