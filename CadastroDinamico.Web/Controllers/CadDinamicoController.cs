@@ -41,6 +41,7 @@ namespace CadastroDinamico.Web.Controllers
             try
             {
                 var result = dadosTabela.Carregar();
+                dadosTabela.CarregarValores(false);
                 if (!string.IsNullOrEmpty(result))
                 {
                     return View("Error", "Home");

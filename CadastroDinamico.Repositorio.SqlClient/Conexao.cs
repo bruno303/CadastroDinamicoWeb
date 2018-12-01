@@ -66,12 +66,55 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public Task<DataTable> RetornarDadosAsync(string query)
+        public async Task<DataTable> RetornarDadosAsync(string query)
         {
-            return Task.Run(() =>
+            DataTable retorno = new DataTable();
+            try
             {
-                return RetornarDados(query);
-            });
+                using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
+                {
+                    await conexao.OpenAsync();
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
+                    {
+                        await Task.Factory.StartNew(() =>
+                        {
+                            adapter.Fill(retorno);
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
+        }
+
+        public async Task<DataTable> RetornarDadosAsync(string query, int timeOut)
+        {
+            DataTable retorno = new DataTable();
+            try
+            {
+                var strConnection = RetornarStringConexao() + "Connection Timeout=" + timeOut.ToString() + ";";
+                using (SqlConnection conexao = new SqlConnection(strConnection))
+                {
+                    await conexao.OpenAsync();
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
+                    {
+                        await Task.Factory.StartNew(() =>
+                        {
+                            adapter.Fill(retorno);
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
         }
         #endregion
 
@@ -98,12 +141,26 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return linhasAfetadas;
         }
 
-        public Task<int> ExecutarQueryAsync(string query)
+        public async Task<int> ExecutarQueryAsync(string query)
         {
-            return Task.Run(() =>
+            int linhasAfetadas = 0;
+            try
             {
-                return ExecutarQuery(query);
-            });
+                using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
+                {
+                    await conexao.OpenAsync();
+                    using (SqlCommand command = new SqlCommand(query, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        linhasAfetadas = await command.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return linhasAfetadas;
         }
         #endregion
 

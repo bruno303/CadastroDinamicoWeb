@@ -48,7 +48,7 @@
                                         @if (Model.Colunas[coluna].Tipo.ToUpper() == "BIT")
                                         {
                                             @Html.CheckBox(Model.Colunas[coluna].Nome, Convert.ToBoolean(Model.ValoresMultilinha.GetValor(linha, coluna).ToString()),
-                                                new { @class = "checkbox", disabled = "disabled" })
+                                                new { @class = "checkbox", onclick = "this.checked=!this.checked;" })
 
                                         }
                                         else
