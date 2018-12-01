@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
-    public class Conexao
+    internal class Conexao
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
         public Conexao()
         {

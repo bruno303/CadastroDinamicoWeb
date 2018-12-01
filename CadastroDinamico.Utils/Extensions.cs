@@ -13,5 +13,15 @@ namespace CadastroDinamico.Utils
         {
             return texto.ToUpper().Equals(textoComparacao.ToUpper());
         }
+
+        public static int QtdLinhas(this object[,] objeto)
+        {
+            return objeto.Rank;
+        }
+
+        public static int QtdColunas(this object[,] objeto)
+        {
+            return objeto.GetUpperBound(0) + 1;
+        }
     }
 }

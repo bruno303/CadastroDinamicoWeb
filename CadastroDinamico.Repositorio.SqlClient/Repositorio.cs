@@ -409,5 +409,50 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
             return retorno;
         }
+
+        public MatrizValores RetornarValoresAmostraDados(string query)
+        {
+            DataTable dados = null;
+            var conexao = new Conexao(RetornarConnectionString());
+
+            dados = conexao.RetornarDados(query);
+
+            var retorno = new MatrizValores(dados.Rows.Count, dados.Columns.Count);
+
+            if (dados?.Rows?.Count > 0)
+            {
+                
+                for (int lin = 0; lin < dados.Rows.Count; lin++)
+                {
+                    for (int col = 0; col < dados.Columns.Count; col++)
+                    {
+                        retorno.SetValor(lin, col, dados.Rows[lin][col].ToString());
+                    }
+                }
+            }
+
+            return retorno;
+        }
+
+        public List<object> RetornarValores(string query)
+        {
+            DataTable dados = null;
+            var conexao = new Conexao(RetornarConnectionString());
+
+            dados = conexao.RetornarDados(query);
+
+            var retorno = new List<object>();
+
+            if (dados?.Rows?.Count > 0)
+            {
+
+                for (int cont = 0; cont < dados.Rows.Count; cont++)
+                {
+                    retorno.Add(dados.Rows[0][cont].ToString());
+                }
+            }
+
+            return retorno;
+        }
     }
 }

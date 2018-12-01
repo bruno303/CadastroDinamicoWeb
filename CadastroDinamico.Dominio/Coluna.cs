@@ -18,5 +18,6 @@ namespace CadastroDinamico.Dominio
         public string TabelaReferenciada { get; set; }
         public string ColunaReferenciada { get; set; }
         public List<TabelaEstrangeira> ListaSelecao { get; set; }
+        public string NomeInput { get; set; }
     }
 }

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using SqlClient = CadastroDinamico.Repositorio.SqlClient;
 
@@ -18,7 +17,10 @@ namespace CadastroDinamico.Core
         public int QuantidadeCampos { get; set; }
         public List<Coluna> Colunas { get; set; }
         public List<object> Valores { get; set; }
+        public MatrizValores ValoresMultilinha { get; set; }
         public List<Coluna> ChavesPrimarias { get; set; }
+        public int QuantidadeColunas { get; set; }
+        public int QuantidadeLinhas { get; set; }
 
         private List<string> camposExibir;
 
@@ -70,6 +72,7 @@ namespace CadastroDinamico.Core
             try
             {
                 Colunas = repositorio.RetornarColunas(Database, Schema, Nome);
+                CarregarNomesInput();
                 TemChavePrimaria = Colunas.Where(p => p.IsChavePrimaria).FirstOrDefault() != null;
                 TemChaveEstrangeira = Colunas.Where(p => p.IsChaveEstrangeira).FirstOrDefault() != null;
                 camposExibir = repositorio.SelecionarColunasVisiveis(Database, Schema, Nome).Split(";").ToList();
@@ -84,6 +87,14 @@ namespace CadastroDinamico.Core
             }
 
             return retorno;
+        }
+
+        private void CarregarNomesInput()
+        {
+            for (int cont = 0; cont < Colunas.Count; cont++)
+            {
+                Colunas[cont].NomeInput = "inputColuna" + cont.ToString();
+            }
         }
 
         private void CarregarColunasChaveEstrangeira()
@@ -122,26 +133,6 @@ namespace CadastroDinamico.Core
             }
         }
 
-        private SelectList RetornarListaTabelaEstrangeira(string tabela, int itemSelecionado)
-        {
-            List<TabelaEstrangeira> itens = null;
-            var repositorio = new SqlClient.Repositorio();
-            string chavePrimaria = "";
-            string descricao = "";
-
-            try
-            {
-                chavePrimaria = repositorio.RetornarColunasChavePrimariaTabela(tabela, Schema, Database)[0].Nome;
-                descricao = repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(Database, Schema, Nome, chavePrimaria);
-                itens = repositorio.SelectTabela(chavePrimaria, descricao, tabela, Schema, Database);
-            }
-            catch(Exception)
-            {
-                throw;
-            }
-            return new SelectList(itens, chavePrimaria, descricao, itemSelecionado);
-        }
-
         private List<TabelaEstrangeira> RetornarListaTabelaEstrangeira(string tabela)
         {
             List<TabelaEstrangeira> itens = null;
@@ -162,20 +153,35 @@ namespace CadastroDinamico.Core
             return itens;
         }
 
-        private DataTable RetornarAmostraDados(List<string> camposNaoExibir)
+        public void CarregarValores(bool amostra = false)
         {
-            return new DataTable();
-            //IConfigurador configurador = new Configurador();
-            //ConfiguracaoBancoDados configuracaoBancoDados = configurador.RetornarConfiguracaoBancoDados();
-            //Conexao conexao = new Conexao(configuracaoBancoDados);
-            //return new Conexao(new Configurador().RetornarConfiguracaoBancoDados()).RetornarDados(RetornarSelect(true));
+            var repositorio = new SqlClient.Repositorio();
+            var query = string.Empty;
+
+            try
+            {
+                query = RetornarSelect("", amostra);
+
+                if (amostra)
+                {
+                    ValoresMultilinha = repositorio.RetornarValoresAmostraDados(query);
+                }
+                else
+                {
+                    Valores = repositorio.RetornarValores(query);
+                }
+            }
+            catch(Exception)
+            {
+                throw;
+            }
         }
 
         public string RetornarSelect(string where, bool amostra = false)
         {
             string query = string.Empty;
 
-            query = "SELECT " + (amostra ? "TOP(1) " : "");
+            query = "SELECT " + (amostra ? "TOP(10) " : "TOP(1) ");
             foreach (var coluna in Colunas)
             {
                 query += coluna.Nome + ", ";

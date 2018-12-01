@@ -13,7 +13,23 @@ namespace CadastroDinamico.Web.Controllers
         public IActionResult Index(string database, string schema, string tabela)
         {
             ViewBag.Title = string.Format("{0}.{1}.{2}", database, schema, tabela).ToUpper();
-            return View();
+            var repositorio = new Repo.Repositorio();
+            var dadosTabela = new TabelaCore(tabela, schema, database);
+
+            try
+            {
+                var result = dadosTabela.Carregar();
+                dadosTabela.CarregarValores(true);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return View("Error", "Home");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return View(dadosTabela);
         }
 
         #region Teste
@@ -29,12 +45,7 @@ namespace CadastroDinamico.Web.Controllers
                 {
                     return View("Error", "Home");
                 }
-                var query = dadosTabela.RetornarSelect("", true);
-                var valoresColunas = new Repo.Conexao(new Repo.Repositorio().RetornarConnectionString()).RetornarDados(query);
-                for (int cont = 0; cont < valoresColunas.Columns.Count; cont++)
-                {
-                    dadosTabela.Valores.Add(valoresColunas.Rows[0][cont]);
-                }
+                dadosTabela.CarregarValores(false);
                 ViewBag.Valores = dadosTabela.Valores;
             }
             catch (Exception)
