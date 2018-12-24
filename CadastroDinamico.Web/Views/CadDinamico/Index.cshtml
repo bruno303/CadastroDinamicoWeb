@@ -1,25 +1,42 @@
 ﻿@using CadastroDinamico.Utils;
 @model CadastroDinamico.Core.TabelaCore
-<h2>@ViewBag.Title</h2>
+
+@section Stylesheets {
+    <style>
+        h2 {
+            font-size: 25px;
+        }
+        .m-botom {
+            margin-bottom: 10px;
+        }
+    </style>
+}
 
 <div class="container-fluid">
     <div class="row">
+        <div class="col-md-12">
+            <button class="btn btn-outline-secondary m-botom" onclick="javascript:history.go(-1)">Voltar</button>
+            <br />
+            <h2>@ViewBag.Title</h2>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-4">
             <div class="form-group">
-                <label>Banco de Dados</label>
-                <select id="selDatabases" class="custom-select"></select>
+                <label>Filtro 1</label>
+                <input id="selDatabases" class="form-control" />
             </div>
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Schema</label>
-                <select id="selSchemas" class="custom-select"></select>
+                <label>Filtro 2</label>
+                <input id="selDatabases" class="form-control" />
             </div>
         </div>
         <div class="col-md-4">
             <div class="form-group">
-                <label>Tabela</label>
-                <select id="selTabelas" class="custom-select"></select>
+                <label>Filtro 3</label>
+                <input id="selDatabases" class="form-control" />
             </div>
         </div>
     </div>
@@ -35,6 +52,9 @@
                                     @Model.Colunas[coluna].Nome
                                 </th>
                             }
+                            <th>
+                                Ações
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,6 +77,11 @@
                                         }
                                     </td>
                                 }
+                                <td>
+                                    @{ string url = string.Format("/CadDinamico/TelaDinamicaAlteracao?database={0}&schema={1}&tabela={2}&pk={3}", Model.Database, Model.Schema, Model.Nome, Model.MontarUrlChavesPrimarias(linha)); }
+                                    <a role="button" href="@url">Editar</a> |
+                                    <a role="button" href="@url">Excluir</a>
+                                </td>
                             </tr>
                         }
                     </tbody>

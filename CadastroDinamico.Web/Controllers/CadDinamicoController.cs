@@ -5,6 +5,7 @@ using System.Linq;
 using CadastroDinamico.Core;
 using System;
 using Microsoft.AspNetCore.Http;
+using CadastroDinamico.Web.Extension;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -33,7 +34,7 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         #region Teste
-        public IActionResult TelaDinamica(string database, string schema, string tabela)
+        public IActionResult TelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
         {
             var repositorio = new Repo.Repositorio();
             var dadosTabela = new TabelaCore(tabela, schema, database);
@@ -41,30 +42,34 @@ namespace CadastroDinamico.Web.Controllers
             try
             {
                 var result = dadosTabela.Carregar();
-                dadosTabela.CarregarValores(false);
+                dadosTabela.CarregarValores(false, pk);
                 if (!string.IsNullOrEmpty(result))
                 {
                     return View("Error", "Home");
                 }
-                dadosTabela.CarregarValores(false);
                 ViewBag.Valores = dadosTabela.Valores;
+                ViewBag.Alterar = true;
             }
             catch (Exception)
             {
                 throw;
             }
-            return View(dadosTabela);
+            return View("TelaDinamica", dadosTabela);
         }
 
         [HttpGet]
         public async System.Threading.Tasks.Task<FileResult> DownloadHtml(string database, string schema, string tabela)
         {
+            var tabelaCore = new TabelaCore(tabela, schema, database);
+            tabelaCore.Carregar();
+            tabelaCore.CarregarValores(true);
+            var html = await this.RenderViewAsync("Index", tabelaCore);
             var path = string.Format("DownloadFiles\\{0}\\", DateTime.Now.ToString("yyyy-MM-dd_HHmmss"));
-            var fileName = tabela + ".html";
+            var fileName = $"{database}_{schema}_{tabela}.html";
 
             System.IO.Directory.CreateDirectory(path);
 
-            await new Utils.Arquivo().EscreverEmArquivoAsync(path + fileName, "teste", false);
+            await new Utils.Arquivo().EscreverEmArquivoAsync(path + fileName, html, false);
 
             var bytes = await System.IO.File.ReadAllBytesAsync(path + fileName);
 
@@ -83,7 +88,11 @@ namespace CadastroDinamico.Web.Controllers
             {
                 valores.Add(item.Key, item.Value[0]);
             }
-            return View();
+            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"]);
+            tabela.Carregar();
+            tabela.AlterarRegistro(valores);
+
+            return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }
         #endregion
     }

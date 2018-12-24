@@ -88,42 +88,23 @@ namespace CadastroDinamico.Web.Controllers
 
         public JsonResult SelecionarColunas(string database, string schema, string tabela)
         {
-            Repo.Repositorio repositorio = new Repo.Repositorio();
             List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
-            var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
-            string colVisiveis = string.Empty;
-            string colFiltro = string.Empty;
-            List<string> colVisiveisList = null;
-            List<string> colFiltroList = null;
+            var tabelaCore = new TabelaCore(tabela, schema, database);
+            tabelaCore.Carregar();
 
-            if (id > 0)
+            var colVisiveisList = tabelaCore.RetornarColunasVisiveis();
+            var colFiltroList = tabelaCore.RetornarColunasFiltro();
+            var id = tabelaCore.RetornarIdConfiguracaoTabela();
+
+            for (int contador = 0; contador < tabelaCore.TodasColunas.Count; contador++)
             {
-                colVisiveis = repositorio.SelecionarColunasVisiveis(id);
-                if (!string.IsNullOrEmpty(colVisiveis))
+                colunas.Add(new ColunaNomeViewModel()
                 {
-                    colVisiveisList = colVisiveis.Split(";").ToList();
-                }
-
-                colFiltro = repositorio.SelecionarColunasFiltro(id);
-                if (!string.IsNullOrEmpty(colFiltro))
-                {
-                    colFiltroList = colFiltro.Split(";").ToList();
-                }
-            }
-
-            var consulta = repositorio.RetornarColunas(database, schema, tabela);
-            if (consulta.Count > 0)
-            {
-                for (int contador = 0; contador < consulta.Count; contador++)
-                {
-                    colunas.Add(new ColunaNomeViewModel()
-                    {
-                        Name = consulta[contador].Nome,
-                        Visivel = (id <= 0) || (colVisiveisList?.Contains(consulta[contador].Nome) ?? false),
-                        PodeOcultar = consulta[contador].AceitaNull,
-                        Filtro = (id <= 0) || (colFiltroList?.Contains(consulta[contador].Nome) ?? false)
-                    });
-                }
+                    Name = tabelaCore.TodasColunas[contador].Nome,
+                    Visivel = (id <= 0) || (colVisiveisList?.Contains(tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false),
+                    PodeOcultar = tabelaCore.TodasColunas[contador].AceitaNull,
+                    Filtro = (id <= 0) || (colFiltroList?.Contains(tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false)
+                });
             }
 
             return Json(colunas);
@@ -143,8 +124,10 @@ namespace CadastroDinamico.Web.Controllers
                     var schema = dadosBanco.Split(";")[1];
                     var tabela = dadosBanco.Split(";")[2];
 
-                    var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
-                    repositorio.SalvarConfiguracoesTabela(id, database, schema, tabela, colunas, dadosfk, dadosfiltro);
+                    var tabelaCore = new TabelaCore(tabela, schema, database);
+                    tabelaCore.Carregar();
+
+                    tabelaCore.SalvarConfiguracoesColunas(colunas.Split(";").ToList(), dadosfk?.Split(";").ToList(), dadosfiltro?.Split(";").ToList());
                 }
                 else
                 {
@@ -166,18 +149,13 @@ namespace CadastroDinamico.Web.Controllers
             List<ColunaChaveEstrangeiraViewModel> colunas = new List<ColunaChaveEstrangeiraViewModel>();
 
             var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
-            string cols = string.Empty;
             string colDescricao = string.Empty;
 
             List<string> colsList = null;
 
             if (id > 0)
             {
-                cols = repositorio.SelecionarColunasChaveEstrangeira(id);
-                if (!string.IsNullOrEmpty(cols))
-                {
-                    colsList = cols.Split(";").ToList();
-                }
+                colsList = repositorio.SelecionarColunasChaveEstrangeira(id);
             }
 
             if (consulta.Count > 0)

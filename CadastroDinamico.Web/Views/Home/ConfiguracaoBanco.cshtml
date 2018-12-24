@@ -13,9 +13,9 @@
                 @Html.ValidationMessageFor(m => m.Servidor, "", new { @class = "text-danger" })
             </div>
             <div class="form-group">
-                @Html.LabelFor(m => m.Database, new { @for = "inpDatabase" })
-                @Html.EditorFor(m => m.Database, new { htmlAttributes = new { @class = "form-control", id = "inpDatabase" } })
-                @Html.ValidationMessageFor(m => m.Database, "", new { @class = "text-danger" })
+                @Html.LabelFor(m => m.Instancia, new { @for = "inpInstancia" })
+                @Html.EditorFor(m => m.Instancia, new { htmlAttributes = new { @class = "form-control", id = "inpInstancia" } })
+                @Html.ValidationMessageFor(m => m.Instancia, "", new { @class = "text-danger" })
             </div>
             <div class="form-group">
                 @Html.LabelFor(m => m.Usuario, new { @for = "inpUsuario" })
@@ -24,7 +24,7 @@
             </div>
             <div class="form-group">
                 @Html.LabelFor(m => m.Senha, new { @for = "inpSenha" })
-                @Html.EditorFor(m => m.Senha, new { htmlAttributes = new { @class = "form-control", type="password", id = "inpSenha" } })
+                @Html.EditorFor(m => m.Senha, new { htmlAttributes = new { @class = "form-control", type = "password", id = "inpSenha" } })
                 @Html.ValidationMessageFor(m => m.Senha, "", new { @class = "text-danger" })
             </div>
             <div class="form-group">
@@ -39,13 +39,41 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalMessage" role="dialog" aria-labelledby="modalMessageLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMessageLabel">
+                    Cadastro Dinâmico
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body" id="textoModal"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Ok
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a hidden="hidden" id="showModalMessage" href="#modalMessage" role="button" class="btn" data-toggle="modal">Abrir Modal</a> 
+
 @section Scripts{
     <script>
+        function exibirModal(message) {
+            $('#textoModal')[0].textContent = message;
+            $('#showModalMessage').click();
+        }
+
         $(document).ready(() => {
             $("#btnSalvar")[0].onclick = () => {
                 let confBd = {};
                 confBd.servidor = $("#inpServidor")[0].value;
-                confBd.database = $("#inpDatabase")[0].value;
+                confBd.instancia = $("#inpInstancia")[0].value;
                 confBd.usuario = $("#inpUsuario")[0].value;
                 confBd.senha = $("#inpSenha")[0].value;
                 confBd.registrarLog = $("#inpRegLog")[0].checked;
@@ -58,14 +86,14 @@
                     contentType: "application/x-www-form-urlencoded",
                     success: (data) => {
                         if (data.result) {
-                            alert("Dados salvos com sucesso!");
+                            exibirModal("Dados salvos com sucesso!");
                         }
                         else {
-                            alert("Erro ao salvar os dados: " + data.error);
+                            exibirModal("Erro ao salvar os dados: " + data.error);
                         }
                     },
                     error: (err) => {
-                        alert("Erro ao salvar os dados: " + err.responseText);
+                        exibirModal("Erro ao salvar os dados: " + err.responseText);
                     },
                     beforeSend: function (xhr) {
                         xhr.overrideMimeType("text/plain; charset=x-user-defined");

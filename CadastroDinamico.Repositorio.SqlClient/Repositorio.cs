@@ -33,7 +33,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             var conexao = new Conexao(RetornarConnectionString());
             try
             {
-                return conexao.RetornarDados("SELECT database_id FROM sys.databases WITH(NOLOCK) WHERE name = '" + database + "'").Rows.Count > 0;
+                return conexao.RetornarDados("SELECT database_id FROM sys.databases WITH(NOLOCK) WHERE name = '" + database + "'")?.Rows?.Count > 0;
             }
             catch(Exception)
             {
@@ -84,7 +84,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             try
             {
-                string query = "SELECT NAME FROM MASTER.SYS.DATABASES";
+                string query = " EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_DATABASES";
                 dados = conexao.RetornarDados(query, 7);
                 if (dados.Rows.Count > 0)
                 {
@@ -151,11 +151,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return tabelas;
         }
 
-        public string SelecionarColunasFiltro(string database, string schema, string tabela)
+        public List<string> SelecionarColunasFiltro(string database, string schema, string tabela)
         {
             DataTable dados = null;
             string colFiltro = string.Empty;
             int id = 0;
+            List<string> colunas = new List<string>();
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
@@ -166,35 +167,38 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
-                colFiltro = SelecionarColunasVisiveis(id);
+                colunas = SelecionarColunasVisiveis(id);
             }
             catch (Exception)
             {
                 throw;
             }
-            return colFiltro;
+            return colunas;
         }
 
-        public string SelecionarColunasFiltro(int id)
+        public List<string> SelecionarColunasFiltro(int id)
         {
             DataTable dados = null;
-            string colFiltro = string.Empty;
+            List<string> colunas = new List<string>();
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
-                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_FILTRO {1} ", DATABASE_NAME, id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
-                    colFiltro = dados.Rows[0][6].ToString();
+                    for (int i = 0; i < dados.Rows.Count; i++)
+                    {
+                        colunas.Add(dados.Rows[i][0].ToString());
+                    }
                 }
             }
             catch (Exception)
             {
                 throw;
             }
-            return colFiltro;
+            return colunas;
         }
 
         public List<Coluna> RetornarColunas(string database, string schema, string tabela)
@@ -258,10 +262,33 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return codigo;
         }
 
-        public string SelecionarColunasVisiveis(string database, string schema, string tabela)
+        public int SelecionarIdConfiguracaoTabelaColuna(string database, string schema, string tabela, string coluna)
         {
             DataTable dados = null;
-            string colVisiveis = string.Empty;
+            int codigo = 0;
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA_COLUNA '{0}', '{1}', '{2}', '{3}' ",
+                    database, schema, tabela, coluna);
+                dados = conexao.RetornarDados(query);
+                if (dados.Rows.Count > 0)
+                {
+                    codigo = Convert.ToInt32(dados.Rows[0][0].ToString());
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return codigo;
+        }
+
+        public List<string> SelecionarColunasVisiveis(string database, string schema, string tabela)
+        {
+            DataTable dados = null;
+            List<string> colunas = new List<string>();
             int id = 0;
             Conexao conexao = new Conexao(RetornarConnectionString());
 
@@ -273,68 +300,74 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
-                colVisiveis = SelecionarColunasVisiveis(id);
+                colunas = SelecionarColunasVisiveis(id);
             }
             catch (Exception)
             {
                 throw;
             }
-            return colVisiveis;
+            return colunas;
         }
 
-        public string SelecionarColunasVisiveis(int id)
+        public List<string> SelecionarColunasVisiveis(int id)
         {
             DataTable dados = null;
-            string colVisiveis = string.Empty;
+            List<string> colunas = new List<string>();
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
-                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_VISIVEIS {1} ", DATABASE_NAME, id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
-                    colVisiveis = dados.Rows[0][4].ToString();
+                    for (int i = 0; i < dados.Rows.Count; i++)
+                    {
+                        colunas.Add(dados.Rows[i][0].ToString());
+                    }
                 }
             }
             catch (Exception)
             {
                 throw;
             }
-            return colVisiveis;
+            return colunas;
         }
 
-        public string SelecionarColunasChaveEstrangeira(int id)
+        public List<string> SelecionarColunasChaveEstrangeira(int id)
         {
             DataTable dados = null;
-            string colVisiveis = string.Empty;
+            List<string> colunas = new List<string>();
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
-                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_CONFIGURACAO_TABELA {0} ", id);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_COLUNAS_CHAVE {0} ", id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
-                    colVisiveis = dados.Rows[0][5].ToString();
+                    for (int i = 0; i < dados.Rows.Count; i++)
+                    {
+                        colunas.Add(dados.Rows[i][0].ToString() + ":" + dados.Rows[i][1].ToString());
+                    }
                 }
             }
             catch (Exception)
             {
                 throw;
             }
-            return colVisiveis;
+            return colunas;
         }
 
-        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table, string colVisiveis, string colChave, string colFiltros)
+        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table)
         {
             var retorno = string.Empty;
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
-                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}', '{4}', '{5}', '{6}' ",
-                    id, database, schema, table, colVisiveis, colChave, colFiltros ?? string.Empty);
+                string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}' ",
+                    id, database, schema, table);
                 conexao.ExecutarQuery(query);
             }
             catch (Exception ex)
@@ -342,6 +375,24 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 retorno = ex.Message;
             }
             return retorno;
+        }
+
+        public void SalvarConfiguracaoColuna(int idConfiguracaoTabelaColuna, int idConfiguracaoTabela, string coluna,
+            bool visivel, string colunaDescricao, bool filtro)
+        {
+            Conexao conexao = new Conexao(RetornarConnectionString());
+
+            try
+            {
+                var query = string.Format("EXEC {0}.DBO.PRC_IU_CONFIGURACAO_TABELA_COLUNA {1}, {2}, '{3}', {4}, '{5}', {6} ", 
+                    DATABASE_NAME, idConfiguracaoTabelaColuna, idConfiguracaoTabela, coluna, visivel ? 1 : 0, colunaDescricao,
+                    filtro ? 1 : 0);
+                conexao.ExecutarQuery(query);
+            }
+             catch (Exception)
+            {
+                throw;
+            }
         }
 
         public List<TabelaEstrangeira> SelectTabela(string chavePrimaria, string descricao, string tabela, string schema, string database)
@@ -381,24 +432,26 @@ namespace CadastroDinamico.Repositorio.SqlClient
         public string SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(string database, string schema, string tabela, string chavePrimaria)
         {
             DataTable dados = null;
-            string colunas = string.Empty;
+            List<string> colunas = new List<string>();
             string retorno = string.Empty;
             Conexao conexao = new Conexao(RetornarConnectionString());
 
             try
             {
                 int id = SelecionarIdConfiguracaoTabela(database, schema, tabela);
-                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_CONFIGURACAO_TABELA {1} ", DATABASE_NAME, id);
+                string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_CHAVE {1} ", DATABASE_NAME, id);
                 dados = conexao.RetornarDados(query);
                 if (dados.Rows.Count > 0)
                 {
-                    colunas = dados.Rows[0][5].ToString();
-                    var colunasSplit = colunas.Split(";");
-                    for (int cont = 0; cont < colunasSplit.Length && retorno == string.Empty; cont++)
+                    for (int i = 0; i < dados.Rows.Count; i++)
                     {
-                        if (colunasSplit[cont].Split(":")[0].Equals(chavePrimaria))
+                        colunas.Add(dados.Rows[i][0].ToString() + ":" + dados.Rows[i][1].ToString());
+                    }
+                    for (int cont = 0; cont < colunas.Count && retorno == string.Empty; cont++)
+                    {
+                        if (colunas[cont].Split(":")[0].Equals(chavePrimaria))
                         {
-                            retorno = colunasSplit[cont].Split(":")[1];
+                            retorno = colunas[cont].Split(":")[1];
                         }
                     }
                 }
@@ -445,14 +498,27 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             if (dados?.Rows?.Count > 0)
             {
-
-                for (int cont = 0; cont < dados.Rows.Count; cont++)
+                for (int cont = 0; cont < dados.Columns.Count; cont++)
                 {
                     retorno.Add(dados.Rows[0][cont].ToString());
                 }
             }
 
             return retorno;
+        }
+
+        public string AlterarValores(string query)
+        {
+            try
+            {
+                var conexao = new Conexao(RetornarConnectionString());
+                var result = conexao.ExecutarQuery(query);
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+            return string.Empty;
         }
     }
 }

@@ -32,6 +32,11 @@ $(document).ready(() => {
     });
 });
 
+function exibirMensagem(message) {
+    $('#modalMessageText')[0].textContent = message;
+    $('#showModalMessage').click();
+}
+
 function successConsultaDatabase(data) {
     $("#selDatabases > option").remove();
     fillDropDown("#selDatabases", data);
@@ -87,6 +92,7 @@ function successConsultaChavesEstrangeiras(data) {
 
 // Databases
 function consultarDatabases() {
+    bloquearTela();
     $.ajax({
         method: "GET",
         dataType: "JSON",
@@ -95,7 +101,8 @@ function consultarDatabases() {
             successConsultaDatabase(data);
         },
         error: function (err) {
-            alert("Houve um erro ao consultar as databases.");
+            desbloquearTela();
+            exibirMensagem("Houve um erro ao consultar as databases.");
         }
     });
 }
@@ -110,7 +117,8 @@ function consultarSchemas() {
             successConsultaSchema(data);
         },
         error: function (err) {
-            alert("Houve um erro ao consultar os schemas.");
+            desbloquearTela();
+            exibirMensagem("Houve um erro ao consultar os schemas.");
         }
     });
 }
@@ -126,7 +134,8 @@ function consultarTabelas() {
             successConsultaTabela(data);
         },
         error: function (err) {
-            alert("Houve um erro ao consultar as tabelas.");
+            desbloquearTela();
+            exibirMensagem("Houve um erro ao consultar as tabelas.");
         }
     });
 }
@@ -144,7 +153,8 @@ function consultarColunas() {
                 successConsultarColunas(data);
             },
             error: function (err) {
-                alert("Houve um erro ao consultar as colunas.");
+                desbloquearTela();
+                exibirMensagem("Houve um erro ao consultar as colunas.");
             },
             complete: (jqXHR) => {
                 awaitLoad(false);
@@ -172,7 +182,7 @@ function consultarColunasChaveEstrangeira() {
                 "&tabela=" + $("#selTabelas")[0].value,
             error: function (err) {
                 $("#divFk").attr('hidden', true);
-                alert("Houve um erro ao consultar as colunas de chave estrangeira.");
+                exibirMensagem("Houve um erro ao consultar as colunas de chave estrangeira.");
             },
             complete: (jqXHR) => {
                 desbloquearTela();
@@ -209,12 +219,14 @@ function fillDropDown(select, data) {
 
 function bloquearTela()
 {
-    $.blockUI({ message: '<h1><img src="../images/load.gif" /> Carregando...</h1>' });
+    // $.blockUI({ message: '<h1><img src="../images/load.gif" /> Carregando...</h1>' });
+    document.getElementById('modalLoading').style.display = 'block';
 }
 
 function desbloquearTela()
 {
-    $.unblockUI();
+    // $.unblockUI();
+    document.getElementById('modalLoading').style.display = 'none';
 }
 
 function gravar() {
@@ -233,7 +245,7 @@ function gravar() {
     }
 
     if (vdados === undefined || vdados === null || vdados === '') {
-        alert('Selecione ao menos uma coluna que deseja exibir!');
+        exibirMensagem('Selecione ao menos uma coluna que deseja exibir!');
     }
     else {
         /* Dados chave estrangeira */
@@ -268,14 +280,14 @@ function gravar() {
             url: "/Configuracao/GravarConfiguracoesTabela",
             success: function (data) {
                 if (data.result) {
-                    alert("Configurações salvas com sucesso!");
+                    exibirMensagem("Configurações salvas com sucesso!");
                 }
                 else {
-                    alert("Erro ao salvar as configurações: " + data.message);
+                    exibirMensagem("Erro ao salvar as configurações: " + data.message);
                 }
             },
             error: function (err) {
-                alert("Erro ao salvar as configurações: " + err.message);
+                exibirMensagem("Erro ao salvar as configurações: " + err.message);
             }
         });
     }

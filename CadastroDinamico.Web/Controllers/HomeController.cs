@@ -20,7 +20,7 @@ namespace CadastroDinamico.Web.Controllers
             if (configuracao != null)
             {
                 viewModel.Servidor = configuracao.Servidor;
-                viewModel.Database = configuracao.Database;
+                viewModel.Instancia = configuracao.Instancia;
                 viewModel.Usuario = configuracao.Usuario;
                 viewModel.Senha = configuracao.Senha;
                 viewModel.RegistrarLog = configuracao.RegistrarLog;

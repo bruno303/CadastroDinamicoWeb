@@ -1,1 +1,1 @@
-body{padding-bottom:20px}.carousel-caption p{font-size:20px;line-height:1.4}.carousel-inner .item img[src$=".svg"]{width:100%}#qrCode{margin:15px}@media screen and (max-width:767px){.carousel-caption{display:none}}.navbar{margin-bottom:25px}
+body {padding-bottom: 20px;} .navbar {margin-bottom: 25px;} .container-fluid {padding: 0px 0px 0px 0px;} #modalLoading img {top:50%;height: 200px;position: relative;margin-top: -100px;} #modalLoading {transition: opacity 0.15s linear;}

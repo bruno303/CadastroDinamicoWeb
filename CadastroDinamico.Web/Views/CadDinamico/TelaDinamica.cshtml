@@ -18,18 +18,21 @@
             <form method="post" action="/CadDinamico/GravarItem/">
                 @Html.AntiForgeryToken()
 
+                @Html.Hidden("Database", Model.Database, new { @class = "form-control" })
+                @Html.Hidden("Schema", Model.Schema, new { @class = "form-control" })
+                @Html.Hidden("Tabela", Model.Nome, new { @class = "form-control" })
+                @Html.Hidden("pk", Model.GetPk(), new { @class = "form-control" })
+
                 @if (Model.QuantidadeCampos > 0)
                 {
                     for (int cont = 0; cont < Model.QuantidadeCampos; cont++)
                     {
-                        var nome = "inpColuna" + (cont + 1).ToString();
+                        var nome = Model.Colunas[cont].NomeInput;
 
                         if (Model.Colunas[cont].IsChaveEstrangeira)
                         {
                             <div class="form-group">
-                                <label for="@nome">
-                                    @Model.Colunas[cont].Nome
-                                </label>
+                                <label for="@nome">@Model.Colunas[cont].Nome</label>
                                 <select name="@nome" id="@nome" class="form-control">
                                     @for (int cont2 = 0; cont2 < Model.Colunas[cont].ListaSelecao.Count; cont2++)
                                     {
@@ -51,11 +54,34 @@
                                  Model.Colunas[cont].Tipo.ToUpper() == "TINYINT")
                         {
                             <div class="form-group">
-                                <label for="@nome">
-                                    @Model.Colunas[cont].Nome
-                                </label>
-                                <input type="number" class="form-control" id="@nome"
-                                       name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                                <label for="@nome">@Model.Colunas[cont].Nome</label>
+                                @if (Model.Colunas[cont].IsChavePrimaria && ViewBag.Alterar)
+                                {
+                                    <input type="number" class="form-control" id="@nome"
+                                           name="@nome" value="@ViewBag.Valores[cont].ToString()" disabled="disabled" />
+                                }
+                                else
+                                {
+                                    <input type="number" class="form-control" id="@nome"
+                                           name="@nome" value="@ViewBag.Valores[cont].ToString()" />
+                                }
+                            </div>
+                        }
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "DECIMAL" ||
+                                 Model.Colunas[cont].Tipo.ToUpper() == "FLOAT")
+                        {
+                            <div class="form-group">
+                                <label for="@nome">@Model.Colunas[cont].Nome</label>
+                                @if (Model.Colunas[cont].IsChavePrimaria && ViewBag.Alterar)
+                                {
+                                    <input type="number" class="form-control" id="@nome" step=".01"
+                                           name="@nome" value="@ViewBag.Valores[cont].ToString().Replace(".", "").Replace(",", ".")" disabled="disabled" />
+                                }
+                                else
+                                {
+                                    <input type="number" class="form-control" id="@nome" step=".01"
+                                           name="@nome" value="@ViewBag.Valores[cont].ToString().Replace(".", "").Replace(",", ".")" />
+                                }
                             </div>
                         }
                         else if (Model.Colunas[cont].Tipo.ToUpper() == "DATETIME")
@@ -64,7 +90,7 @@
                                 <label for="@nome">
                                     @Model.Colunas[cont].Nome
                                 </label>
-                                <input type="datetime" class="form-control" id="@nome"
+                                <input type="datetime" class="form-control inputData" id="@nome"
                                        name="@nome" value="@ViewBag.Valores[cont].ToString()" />
                             </div>
                         }
@@ -92,12 +118,23 @@
                         {
                             <div class="form-group">
                                 <div class="checkbox" style="margin-bottom: 15px;">
-                                    <input type="checkbox" id="@nome" name="@nome" value="@ViewBag.Valores[cont].ToString()">
+                                    @if (ViewBag.Valores[cont].ToString().ToUpper() == "TRUE" ||
+                                  ViewBag.Valores[cont].ToString().ToUpper() == "1")
+                                    {
+                                        <input type="checkbox" id="@nome" name="@nome" checked="checked">
+                                    }
+                                    else
+                                    {
+                                        <input type="checkbox" id="@nome" name="@nome">
+                                    }
                                     <label for="@nome">@Model.Colunas[cont].Nome</label>
                                 </div>
                             </div>
                         }
-                        else if (Model.Colunas[cont].Tipo.ToUpper() == "VARCHAR")
+                        else if (Model.Colunas[cont].Tipo.ToUpper() == "VARCHAR" ||
+                            Model.Colunas[cont].Tipo.ToUpper() == "NVARCHAR" ||
+                            Model.Colunas[cont].Tipo.ToUpper() == "CHAR" ||
+                            Model.Colunas[cont].Tipo.ToUpper() == "NCHAR")
                         {
                             <div class="form-group">
                                 <label for="@nome">@Model.Colunas[cont].Nome</label>
@@ -107,8 +144,31 @@
                     }
                 }
 
-                <button type="submit" class="btn btn-primary" id="btnSalvar">Salvar</button>
+                <button type="submit" class="btn btn-success" id="btnSalvar">Salvar</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="javascript:history.go(-1)">Voltar</button>
             </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+
+    <environment include="Development">
+        <script src="~/js/cadDinamicoAlteracao.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/cadDinamicoAlteracao.min.js"></script>
+    </environment>
+    
+    <script>
+        $(document).ready(() => {
+            $(".inputData").inputmask("datetime", {
+                mask: "1/2/y h:s",
+                placeholder: "dd/mm/yyyy hh:mm",
+                alias: "datetime",
+                separator: "/",
+                hourFormat: "24"
+            });
+        });
+    </script>
+}

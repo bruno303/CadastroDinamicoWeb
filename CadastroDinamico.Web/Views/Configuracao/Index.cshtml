@@ -3,6 +3,17 @@
         h2 {
             padding-bottom: 10px;
         }
+        #modalLoading .modal-content {
+            align-items: center;
+            background: black;
+            border: none;
+            opacity: 0.8;
+            height: 100%;
+        }
+
+        .btn-block {
+            margin-bottom: 5px;
+        }
     </style>
 }
 
@@ -82,19 +93,53 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-8 text-left">
-            <button class="btn btn-success btn-lg" onclick="gravar()">Gravar</button>
-            <button class="btn btn-outline-success btn-lg" onclick="cadDinamico()">Cadastro Dinâmico</button>
+        <div class="col-md-3 col-sm-12 text-left">
+            <button class="btn btn-success btn-block" onclick="gravar()">Gravar</button>
         </div>
-        <div class="col-md-4 text-right">
-            <button class="btn btn-outline-danger btn-lg" onclick="limparConfiguracao()">Limpar Configuração</button>
+        <div class="col-md-4 col-sm-12 text-left">
+            <button class="btn btn-outline-success btn-block" onclick="cadDinamico()">Cadastro Dinâmico</button>
+        </div>
+        <div class="col-md-5 col-sm-12 text-right">
+            <button class="btn btn-outline-danger btn-block" onclick="limparConfiguracao()">Limpar Configuração</button>
         </div>
     </div>
 
 </div>
 
+
+<a hidden id="showModalMessage" href="#modalMessage" role="button" class="btn" data-toggle="modal"></a> 
+
+<div class="modal fade" id="modalMessage" role="dialog" aria-labelledby="modalMessageLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMessageLabel">
+                    Cadastro Dinâmico
+                </h5> 
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalMessageText"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Ok
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalLoading">
+    <div class="modal-content">
+        <div class="modal-body">
+            <img src="~/images/loading.gif" />
+        </div>
+    </div>
+</div>
+
 @section Scripts{
-    <script type="text/javascript" src="~/lib/jquery-blockUI/jquery.blockUI.min.js"></script>
+    <!-- <script type="text/javascript" src="~/lib/jquery-blockUI/jquery.blockUI.min.js"></script> -->
     <environment include="Development">
         <script type="text/javascript" src="~/js/configuracaoIndex.js"></script>
     </environment>

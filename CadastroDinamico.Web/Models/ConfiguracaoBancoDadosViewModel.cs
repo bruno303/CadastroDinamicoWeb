@@ -8,9 +8,8 @@ namespace CadastroDinamico.Web.Models
         [Display(Name = "Servidor")]
         public string Servidor { get; set; }
 
-        [Required(ErrorMessage = "É necessário informar o banco de dados")]
-        [Display(Name = "Banco de Dados")]
-        public string Database { get; set; }
+        [Display(Name = "Instância")]
+        public string Instancia { get; set; }
 
         [Required(ErrorMessage = "É necessário informar o usuário")]
         [Display(Name = "Usuário")]
