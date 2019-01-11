@@ -1,0 +1,46 @@
+[
+  {
+    "outputFileName": "wwwroot/css/site.min.css",
+    "inputFiles": [
+      "wwwroot/css/site.css"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/configuracaoIndex.min.js",
+    "inputFiles": [
+      "wwwroot/js/configuracaoIndex.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/cadDinamicoAlteracao.min.js",
+    "inputFiles": [
+      "wwwroot/js/cadDinamicoAlteracao.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/cadDinamicoIndex.min.js",
+    "inputFiles": [
+      "wwwroot/js/cadDinamicoIndex.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  }
+]

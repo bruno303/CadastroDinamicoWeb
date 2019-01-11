@@ -229,15 +229,61 @@ namespace CadastroDinamico.Core
 
         public string RetornarSelect(string where, bool amostra = false)
         {
+            var repositorio = new SqlClient.Repositorio();
             string query = string.Empty;
+            int countTabelasEstrangeiras = 0;
+            const string prefixoAlias = "AL";
+
+            var id = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+            string colDescricao = string.Empty;
+
+            List<string> colsList = null;
+
+            if (id > 0)
+            {
+                colsList = repositorio.SelecionarColunasChaveEstrangeira(id);
+            }
 
             query = "SELECT " + (amostra ? "TOP(10) " : "TOP(1) ");
-            foreach (var coluna in Colunas)
+            for (int i = 0; i < Colunas.Count; i++)
             {
-                query += coluna.Nome + ", ";
+                if (Colunas[i].IsChaveEstrangeira)
+                {
+                    countTabelasEstrangeiras++;
+                    if (colsList != null)
+                    {
+                        if (colsList.Where(p => p.Split(":")[0].Equals(Colunas[i].Nome)).FirstOrDefault() != null)
+                        {
+                            colDescricao = colsList.Where(p => p.Split(":")[0].Equals(Colunas[i].Nome)).FirstOrDefault().Split(":")[1];
+                        }
+                        else
+                        {
+                            colDescricao = Colunas[i].Nome;
+                        }
+                    }
+
+                    query += $"{prefixoAlias + countTabelasEstrangeiras.ToString()}.{colDescricao}, ";
+                }
+                else
+                {
+                    query += prefixoAlias + "0." + Colunas[i].Nome + ", ";
+                }
             }
             query = query.Remove(query.Length - 2, 2);
-            query += string.Format(" FROM {0}.{1}.{2} WITH(NOLOCK)", Database, Schema, Nome);
+            query += string.Format(" FROM {0}.{1}.{2} {3} WITH(NOLOCK)", Database, Schema, Nome, prefixoAlias + "0");
+            if (countTabelasEstrangeiras > 0)
+            {
+                countTabelasEstrangeiras = 0;
+                for (int i = 0; i < Colunas.Count; i++)
+                {
+                    if (Colunas[i].IsChaveEstrangeira)
+                    {
+                        countTabelasEstrangeiras++;
+                        query += $" LEFT JOIN {Database}.{Schema}.{Colunas[i].TabelaReferenciada} {prefixoAlias + countTabelasEstrangeiras.ToString()} ";
+                        query += $"     WITH(NOLOCK) ON {prefixoAlias + countTabelasEstrangeiras.ToString()}.{Colunas[i].ColunaReferenciada} = {prefixoAlias + "0"}.{Colunas[i].Nome}";
+                    }
+                }
+            }
             
             if (!string.IsNullOrWhiteSpace(where))
             {
