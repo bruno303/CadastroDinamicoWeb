@@ -3,7 +3,7 @@
         language: {
             "decimal": ",",
             "emptyTable": "Nenhum registro disponível",
-            "info": "Exibindo _START_ até _END_ de _TOTAL_ registro(s)",
+            "info": "Exibindo _START_ a _END_ de _TOTAL_ registro(s)",
             "infoEmpty": "",
             "infoFiltered": "(filtrado de _MAX_ registros)",
             "infoPostFix": "",

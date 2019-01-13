@@ -32,6 +32,7 @@ namespace CadastroDinamico.Core
             Schema = schema;
             Database = database;
             Valores = new List<object>();
+            Carregar();
         }
 
         public TabelaCore(string tabela, string schema)
@@ -39,18 +40,24 @@ namespace CadastroDinamico.Core
             Nome = tabela;
             Schema = schema;
             Valores = new List<object>();
+            Carregar();
         }
 
         public TabelaCore(string tabela)
         {
             Nome = tabela;
             Valores = new List<object>();
+            Carregar();
         }
 
-        public TabelaCore() { }
+        public TabelaCore()
+        {
+            Valores = new List<object>();
+            Carregar();
+        }
         #endregion
 
-        public string Carregar()
+        private string Carregar()
         {
             string retorno = string.Empty;
             SqlClient.Repositorio repositorio = new SqlClient.Repositorio();

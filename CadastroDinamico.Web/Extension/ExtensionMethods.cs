@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroDinamico.Web.Extension
 {
@@ -56,6 +57,18 @@ namespace CadastroDinamico.Web.Extension
             {
                 return viewEngine.FindView(controller.ControllerContext, viewName, !isPartial);
 
+            }
+        }
+
+        public static bool ValidarLogin(this Controller controller)
+        {
+            try
+            {
+                return controller.HttpContext.Session.GetInt32("idUsuario") > 0;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

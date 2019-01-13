@@ -5,7 +5,7 @@ namespace CadastroDinamico.Repositorio.SQLite
 {
     public class Repositorio
     {
-        public async void CriaBaseSQLite()
+        public async Task CriaBaseSQLite()
         {
             var conexao = new Conexao();
 
@@ -20,12 +20,12 @@ namespace CadastroDinamico.Repositorio.SQLite
         private async Task CriarTabela()
         {
             var conexao = new Conexao();
-            await conexao.ExecutarQueryAsync("CREATE TABLE USUARIO (ID_USUARIO INTEGER AUTOINCREMENT, NOME TEXT, LOGON TEXT, SENHA TEXT);");
+            await conexao.ExecutarQueryAsync("CREATE TABLE USUARIO (ID_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, NOME TEXT, LOGON TEXT, SENHA TEXT);");
         }
 
         private async Task CriarUsuarioAdmin()
         {
-            await CriarUsuario("ADMINISTRADOR", "ADMIN", "ADMIN!@#123");
+            await CriarUsuario("ADMINISTRADOR", "ADMIN", "admin!@#123");
         }
 
         public async Task CriarUsuario(string nome, string logon, string senha)
@@ -39,7 +39,7 @@ namespace CadastroDinamico.Repositorio.SQLite
             var conexao = new Conexao();
             var retorno = 0;
 
-            var dados = await conexao.RetornarDadosAsync($"SELECT ID_USUARIO FROM USUARIO WHERE LOGON = '{usuario}' AND SENHA = '{senha}'; ");
+            var dados = await conexao.RetornarDadosAsync($"SELECT ID_USUARIO FROM USUARIO WHERE UPPER(LOGON) = '{usuario.ToUpper()}' AND SENHA = '{senha}'; ");
 
             if (dados.Rows.Count > 0)
             {

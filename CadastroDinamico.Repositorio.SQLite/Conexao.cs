@@ -32,7 +32,7 @@ namespace CadastroDinamico.Repositorio.SQLite
             DataTable retorno = new DataTable();
             try
             {
-                using (var conexao = new SQLiteConnection(_databaseFileName))
+                using (var conexao = new SQLiteConnection(_connectionString))
                 {
                     await conexao.OpenAsync();
                     using (var adapter = new SQLiteDataAdapter(query, conexao))
@@ -57,7 +57,7 @@ namespace CadastroDinamico.Repositorio.SQLite
             int linhasAfetadas = 0;
             try
             {
-                using (var conexao = new SQLiteConnection(_databaseFileName))
+                using (var conexao = new SQLiteConnection(_connectionString))
                 {
                     await conexao.OpenAsync();
                     using (var command = new SQLiteCommand(query, conexao))

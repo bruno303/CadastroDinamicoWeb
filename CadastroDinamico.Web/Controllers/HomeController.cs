@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using CadastroDinamico.Web.Models;
 using CadastroDinamico.Repositorio.SqlClient;
+using CadastroDinamico.Web.Extension;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -9,23 +10,37 @@ namespace CadastroDinamico.Web.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            if (this.ValidarLogin())
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Index", "Login");
+            }
         }
 
         public IActionResult ConfiguracaoBanco()
         {
-            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
-            var configuracao = configurador.RetornarConfiguracaoBancoDados();
-            ConfiguracaoBancoDadosViewModel viewModel = new ConfiguracaoBancoDadosViewModel();
-            if (configuracao != null)
+            if (this.ValidarLogin())
             {
-                viewModel.Servidor = configuracao.Servidor;
-                viewModel.Instancia = configuracao.Instancia;
-                viewModel.Usuario = configuracao.Usuario;
-                viewModel.Senha = configuracao.Senha;
-                viewModel.RegistrarLog = configuracao.RegistrarLog;
+                ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
+                var configuracao = configurador.RetornarConfiguracaoBancoDados();
+                ConfiguracaoBancoDadosViewModel viewModel = new ConfiguracaoBancoDadosViewModel();
+                if (configuracao != null)
+                {
+                    viewModel.Servidor = configuracao.Servidor;
+                    viewModel.Instancia = configuracao.Instancia;
+                    viewModel.Usuario = configuracao.Usuario;
+                    viewModel.Senha = configuracao.Senha;
+                    viewModel.RegistrarLog = configuracao.RegistrarLog;
+                }
+                return View(viewModel);
             }
-            return View(viewModel);
+            else
+            {
+                return RedirectToAction("Index", "Login");
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

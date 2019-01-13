@@ -1,0 +1,38 @@
+﻿@model LoginViewModel
+@{
+    Layout = "_LayoutEmpty";
+}
+
+<br />
+<div class="row">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <form method="post" action="/Login/Login/" role="form">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                @Html.LabelFor(p => p.Usuario)
+                @Html.TextBoxFor(p => p.Usuario, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Usuario, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Senha)
+                @Html.PasswordFor(p => p.Senha, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
+            </div>
+            <br />
+
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+@section Scripts {
+    <script src="~/js/validate.min.js"></script>
+}

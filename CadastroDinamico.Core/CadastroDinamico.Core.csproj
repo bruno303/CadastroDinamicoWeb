@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CadastroDinamico.Dominio\CadastroDinamico.Dominio.csproj" />
     <ProjectReference Include="..\CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj" />
+    <ProjectReference Include="..\CadastroDinamico.Repositorio.SQLite\CadastroDinamico.Repositorio.SQLite.csproj" />
     <ProjectReference Include="..\CadastroDinamico.Utils\CadastroDinamico.Utils.csproj" />
   </ItemGroup>
 

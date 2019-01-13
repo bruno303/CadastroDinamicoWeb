@@ -1,89 +1,47 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CadastroDinamico.Core;
+using CadastroDinamico.Web.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Web.Controllers
 {
     public class LoginController : Controller
     {
-        // GET: Login
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }
 
-        // GET: Login/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: Login/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Login/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
-            try
+            if (ModelState.IsValid)
             {
-                // TODO: Add insert logic here
-
-                return RedirectToAction(nameof(Index));
+                var sqliteCore = new SQLiteCore();
+                if (await sqliteCore.ValidarLoginUsuario(loginViewModel.Usuario, loginViewModel.Senha))
+                {
+                    HttpContext.Session.SetInt32("idUsuario", sqliteCore.IdUsuario);
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Usuário e/ou senha não encontrados.");
+                    return View("Index", loginViewModel);
+                }
             }
-            catch
+            else
             {
-                return View();
+                ModelState.AddModelError("", "Ocorreu um erro ao tentar realizar o login.");
+                return View("Index", loginViewModel);
             }
         }
 
-        // GET: Login/Edit/5
-        public ActionResult Edit(int id)
+        public IActionResult Logout()
         {
-            return View();
-        }
-
-        // POST: Login/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: Login/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: Login/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Login");
         }
     }
 }
