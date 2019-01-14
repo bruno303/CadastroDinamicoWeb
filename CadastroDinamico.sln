@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Utils", "C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Repositorio.SqlClient", "CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj", "{02687EFB-C233-4355-B984-2659CAFDC03C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CadastroDinamico.Repositorio.SQLite", "CadastroDinamico.Repositorio.SQLite\CadastroDinamico.Repositorio.SQLite.csproj", "{DE40A811-1D11-4DB3-BBB7-7A90A01200DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadastroDinamico.Repositorio.SQLite", "CadastroDinamico.Repositorio.SQLite\CadastroDinamico.Repositorio.SQLite.csproj", "{C5F072CE-84CE-4B6D-AB32-EDE3FA51B9A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02687EFB-C233-4355-B984-2659CAFDC03C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DE40A811-1D11-4DB3-BBB7-7A90A01200DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DE40A811-1D11-4DB3-BBB7-7A90A01200DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DE40A811-1D11-4DB3-BBB7-7A90A01200DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DE40A811-1D11-4DB3-BBB7-7A90A01200DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5F072CE-84CE-4B6D-AB32-EDE3FA51B9A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5F072CE-84CE-4B6D-AB32-EDE3FA51B9A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5F072CE-84CE-4B6D-AB32-EDE3FA51B9A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5F072CE-84CE-4B6D-AB32-EDE3FA51B9A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

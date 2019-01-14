@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CadastroDinamico.Dominio;
+using System;
 using System.Threading.Tasks;
 
 namespace CadastroDinamico.Core
@@ -16,8 +17,26 @@ namespace CadastroDinamico.Core
             try
             {
                 await repositorioSQLite.CriaBaseSQLite();
-                IdUsuario = await repositorioSQLite.ValidarUsuarioSenha(usuario, senha);
+                IdUsuario = await repositorioSQLite.ValidarUsuarioSenhaAsync(usuario, senha);
                 return IdUsuario > 0;
+            }
+            catch (Exception)
+            {
+                retorno = false;
+            }
+
+            return retorno;
+        }
+
+        public async Task<bool> AlterarUsuario(Usuario usuario)
+        {
+            var repositorioSQLite = new Repositorio.SQLite.Repositorio();
+            var retorno = false;
+
+            try
+            {
+                await repositorioSQLite.AlterarUsuarioAsync(usuario);
+                retorno = true;
             }
             catch (Exception)
             {

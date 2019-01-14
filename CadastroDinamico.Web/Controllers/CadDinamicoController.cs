@@ -94,17 +94,24 @@ namespace CadastroDinamico.Web.Controllers
 
         public IActionResult GravarItem(IFormCollection formCollection)
         {
-            var lista = formCollection.ToList();
-            var valores = new Dictionary<string, string>();
-
-            foreach (var item in lista)
+            if (this.ValidarLogin())
             {
-                valores.Add(item.Key, item.Value[0]);
-            }
-            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"]);
-            tabela.AlterarRegistro(valores);
+                var lista = formCollection.ToList();
+                var valores = new Dictionary<string, string>();
 
-            return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
+                foreach (var item in lista)
+                {
+                    valores.Add(item.Key, item.Value[0]);
+                }
+                var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"]);
+                tabela.AlterarRegistro(valores);
+
+                return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
+            }
+            else
+            {
+                return RedirectToAction("Index", "Login");
+            }
         }
         #endregion
     }
