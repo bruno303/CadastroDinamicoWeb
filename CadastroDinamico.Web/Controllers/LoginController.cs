@@ -1,4 +1,5 @@
 ﻿using CadastroDinamico.Core;
+using CadastroDinamico.Dominio;
 using CadastroDinamico.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,13 @@ namespace CadastroDinamico.Web.Controllers
             if (ModelState.IsValid)
             {
                 var sqliteCore = new SQLiteCore();
-                if (await sqliteCore.ValidarLoginUsuario(loginViewModel.Usuario, loginViewModel.Senha))
+                var usuario = new Usuario()
+                {
+                    Login = loginViewModel.Usuario,
+                    Senha = loginViewModel.Senha
+                };
+
+                if (await sqliteCore.ValidarLoginUsuarioAsync(usuario))
                 {
                     HttpContext.Session.SetInt32("idUsuario", sqliteCore.IdUsuario);
                     return RedirectToAction("Index", "Home");

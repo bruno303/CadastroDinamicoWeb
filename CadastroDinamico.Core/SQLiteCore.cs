@@ -1,5 +1,6 @@
 ﻿using CadastroDinamico.Dominio;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CadastroDinamico.Core
@@ -8,7 +9,7 @@ namespace CadastroDinamico.Core
     {
         public int IdUsuario { get; set; }
 
-        public async Task<bool> ValidarLoginUsuario(string usuario, string senha)
+        public async Task<bool> ValidarLoginUsuarioAsync(Usuario usuario)
         {
             IdUsuario = 0;
             bool retorno = false;
@@ -17,7 +18,7 @@ namespace CadastroDinamico.Core
             try
             {
                 await repositorioSQLite.CriaBaseSQLite();
-                IdUsuario = await repositorioSQLite.ValidarUsuarioSenhaAsync(usuario, senha);
+                IdUsuario = await repositorioSQLite.ValidarUsuarioSenhaAsync(usuario.Login, usuario.Senha);
                 return IdUsuario > 0;
             }
             catch (Exception)
@@ -28,14 +29,21 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public async Task<bool> AlterarUsuario(Usuario usuario)
+        public async Task<bool> GravarUsuarioAsync(Usuario usuario)
         {
             var repositorioSQLite = new Repositorio.SQLite.Repositorio();
             var retorno = false;
 
             try
             {
-                await repositorioSQLite.AlterarUsuarioAsync(usuario);
+                if (usuario.IdUsuario != 0)
+                {
+                    await repositorioSQLite.AlterarUsuarioAsync(usuario);
+                }
+                else
+                {
+                    await repositorioSQLite.CriarUsuarioAsync(usuario.Nome, usuario.Login, usuario.Senha);
+                }
                 retorno = true;
             }
             catch (Exception)
@@ -44,6 +52,42 @@ namespace CadastroDinamico.Core
             }
 
             return retorno;
+        }
+
+        public async Task<List<Usuario>> RetornarUsuariosAsync()
+        {
+            try
+            {
+                return await new Repositorio.SQLite.Repositorio().RetornarUsuarios();
+            }
+            catch(Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<Usuario> RetornarUsuarioAsync(int idUsuario)
+        {
+            try
+            {
+                return await new Repositorio.SQLite.Repositorio().RetornarUsuario(idUsuario);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task DeletarUsuarioAsync(int idUsuario)
+        {
+            try
+            {
+                await new Repositorio.SQLite.Repositorio().DeletarUsuarioAsync(idUsuario);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
