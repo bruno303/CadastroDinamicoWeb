@@ -24,6 +24,16 @@
                 <br />
                 @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
             </div>
+
+            @if (Model.Servidores.Count > 0)
+            {
+                <div class="form-group">
+                    @Html.LabelFor(p => p.Servidor)
+                    @Html.DropDownListFor(p => p.Servidor, new SelectList(Model.Servidores, "IdServidor", "Hostname"), "NENHUM", new { @class = "form-control" })
+                    <br />
+                    @Html.ValidationMessageFor(p => p.Servidor, "", new { @class = "text-danger" }, "")
+                </div>
+            }
             <br />
 
             <button type="submit" class="btn btn-primary">Entrar</button>

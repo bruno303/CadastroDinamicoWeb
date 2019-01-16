@@ -1,6 +1,7 @@
 ﻿using CadastroDinamico.Dominio;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CadastroDinamico.Core
@@ -17,7 +18,7 @@ namespace CadastroDinamico.Core
 
             try
             {
-                await repositorioSQLite.CriaBaseSQLite();
+                await repositorioSQLite.CriarBaseSQLiteAsync();
                 IdUsuario = await repositorioSQLite.ValidarUsuarioSenhaAsync(usuario.Login, usuario.Senha);
                 return IdUsuario > 0;
             }
@@ -54,23 +55,36 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public async Task<List<Usuario>> RetornarUsuariosAsync()
+        public async Task<bool> GravarServidorAsync(Servidor servidor)
         {
+            var repositorioSQLite = new Repositorio.SQLite.Repositorio();
+            var retorno = false;
+
             try
             {
-                return await new Repositorio.SQLite.Repositorio().RetornarUsuarios();
+                if (servidor.IdServidor != 0)
+                {
+                    await repositorioSQLite.AlterarServidorAsync(servidor);
+                }
+                else
+                {
+                    await repositorioSQLite.CriarServidorAsync(servidor);
+                }
+                retorno = true;
             }
-            catch(Exception)
+            catch (Exception)
             {
-                throw;
+                retorno = false;
             }
+
+            return retorno;
         }
 
-        public async Task<Usuario> RetornarUsuarioAsync(int idUsuario)
+        public async Task DeletarServidorAsync(int idServidor)
         {
             try
             {
-                return await new Repositorio.SQLite.Repositorio().RetornarUsuario(idUsuario);
+                await new Repositorio.SQLite.Repositorio().DeletarServidorAsync(idServidor);
             }
             catch (Exception)
             {
@@ -78,16 +92,17 @@ namespace CadastroDinamico.Core
             }
         }
 
-        public async Task DeletarUsuarioAsync(int idUsuario)
+        public async Task<bool> DeveGravarSessaoServidor()
         {
-            try
-            {
-                await new Repositorio.SQLite.Repositorio().DeletarUsuarioAsync(idUsuario);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            var repositorioSQLite = new Repositorio.SQLite.Repositorio();
+            return (await repositorioSQLite.RetornarServidoresAsync()).Count == 1;
+        }
+
+        public async Task<int> RetornaIdUnicoServidor()
+        {
+            var repositorioSQLite = new Repositorio.SQLite.Repositorio();
+            var servidor = await repositorioSQLite.RetornarServidoresAsync();
+            return servidor.FirstOrDefault().IdServidor;
         }
     }
 }

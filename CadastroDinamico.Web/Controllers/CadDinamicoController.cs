@@ -6,23 +6,27 @@ using CadastroDinamico.Core;
 using System;
 using Microsoft.AspNetCore.Http;
 using CadastroDinamico.Web.Extension;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Web.Controllers
 {
     public class CadDinamicoController : Controller
     {
-        public IActionResult Index(string database, string schema, string tabela)
+        public async Task<IActionResult> Index(string database, string schema, string tabela)
         {
             if (this.ValidarLogin())
             {
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
                 ViewBag.Title = string.Format("{0}.{1}.{2}", database, schema, tabela).ToUpper();
-                var repositorio = new Repo.Repositorio();
+
+                var repositorio = new Repo.Repositorio(idServidor);
                 TabelaCore dadosTabela = null;
 
                 try
                 {
-                    dadosTabela = new TabelaCore(tabela, schema, database);
-                    dadosTabela.CarregarValores(true);
+                    dadosTabela = new TabelaCore(tabela, schema, database, idServidor);
+                    await dadosTabela.CarregarAsync();
+                    await dadosTabela.CarregarValoresAsync(true);
                 }
                 catch (Exception)
                 {
@@ -37,18 +41,20 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         #region Teste
-        public IActionResult TelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
+        public async Task<IActionResult> TelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
         {
             if (this.ValidarLogin())
             {
-                var repositorio = new Repo.Repositorio();
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                var repositorio = new Repo.Repositorio(idServidor);
                 TabelaCore dadosTabela = null;
 
 
                 try
                 {
-                    dadosTabela = new TabelaCore(tabela, schema, database);
-                    dadosTabela.CarregarValores(false, pk);
+                    dadosTabela = new TabelaCore(tabela, schema, database, idServidor);
+                    await dadosTabela.CarregarAsync();
+                    await dadosTabela.CarregarValoresAsync(false, pk);
                     ViewBag.Valores = dadosTabela.Valores;
                     ViewBag.Alterar = true;
                 }
@@ -65,12 +71,14 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         [HttpGet]
-        public async System.Threading.Tasks.Task<FileResult> DownloadHtml(string database, string schema, string tabela)
+        public async Task<FileResult> DownloadHtml(string database, string schema, string tabela)
         {
             if (this.ValidarLogin())
             {
-                var tabelaCore = new TabelaCore(tabela, schema, database);
-                tabelaCore.CarregarValores(true);
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
+                await tabelaCore.CarregarAsync();
+                await tabelaCore.CarregarValoresAsync(true);
                 var html = await this.RenderViewAsync("Index", tabelaCore);
                 var path = string.Format("DownloadFiles\\{0}\\", DateTime.Now.ToString("yyyy-MM-dd_HHmmss"));
                 var fileName = $"{database}_{schema}_{tabela}.html";
@@ -92,10 +100,11 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        public IActionResult GravarItem(IFormCollection formCollection)
+        public async Task<IActionResult> GravarItem(IFormCollection formCollection)
         {
             if (this.ValidarLogin())
             {
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
                 var lista = formCollection.ToList();
                 var valores = new Dictionary<string, string>();
 
@@ -103,8 +112,9 @@ namespace CadastroDinamico.Web.Controllers
                 {
                     valores.Add(item.Key, item.Value[0]);
                 }
-                var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"]);
-                tabela.AlterarRegistro(valores);
+                var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
+                await tabela.CarregarAsync();
+                await tabela.AlterarRegistroAsync(valores);
 
                 return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
             }

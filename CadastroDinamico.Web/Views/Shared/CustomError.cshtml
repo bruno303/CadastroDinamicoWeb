@@ -1,0 +1,33 @@
+﻿@model CustomErrorViewModel
+@{
+    ViewData["Title"] = "Erro - Cadastro Dinâmico";
+}
+
+@section Stylesheets {
+    <style>
+        .margins {
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+    </style>
+}
+
+<h1 class="text-danger">Erro!</h1>
+<h2 class="text-danger">Houve um erro durante o processamento da sua requisição.</h2>
+
+@if (Model.ShowIdErro)
+{
+    <p>
+        <strong>ID Erro:</strong> <code>@Model.IdErro</code>
+    </p>
+}
+
+<p>
+    <strong>O servidor retornou a seguinte mensagem: </strong> @Model.Mensagem.
+</p>
+
+<div class="row">
+    <div class="col-md-12">
+        <button class="btn btn-outline-secondary margins" onclick="javascript:history.go(-1)">Voltar</button>
+    </div>
+</div>

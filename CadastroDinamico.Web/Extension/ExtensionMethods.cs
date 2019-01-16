@@ -7,6 +7,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Html;
 
 namespace CadastroDinamico.Web.Extension
 {
@@ -70,6 +72,12 @@ namespace CadastroDinamico.Web.Extension
             {
                 return false;
             }
+        }
+
+        public static async Task<HtmlString> RetornarHostnameServidor(this RazorPage razorPage, int idServidor)
+        {
+            var servidor = await new Repositorio.SQLite.Repositorio().RetornarServidorAsync(idServidor);
+            return new HtmlString(servidor.Hostname);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SqlClient = CadastroDinamico.Repositorio.SqlClient;
 
 namespace CadastroDinamico.Core
@@ -21,46 +22,29 @@ namespace CadastroDinamico.Core
         public List<Coluna> ChavesPrimarias { get; set; }
         public int QuantidadeColunas { get; set; }
         public int QuantidadeLinhas { get; set; }
+        public int IdServidor { get; set; }
 
         private List<string> camposExibir;
         private string pkAlteracao;
 
-        #region Construtores
-        public TabelaCore(string tabela, string schema, string database)
+        #region Construtor
+
+        public TabelaCore(string tabela, string schema, string database, int idServidor)
         {
             Nome = tabela;
             Schema = schema;
             Database = database;
+            IdServidor = idServidor;
             Valores = new List<object>();
-            Carregar();
+            //Carregar();
         }
 
-        public TabelaCore(string tabela, string schema)
-        {
-            Nome = tabela;
-            Schema = schema;
-            Valores = new List<object>();
-            Carregar();
-        }
-
-        public TabelaCore(string tabela)
-        {
-            Nome = tabela;
-            Valores = new List<object>();
-            Carregar();
-        }
-
-        public TabelaCore()
-        {
-            Valores = new List<object>();
-            Carregar();
-        }
         #endregion
 
-        private string Carregar()
+        public async Task<string> CarregarAsync()
         {
             string retorno = string.Empty;
-            SqlClient.Repositorio repositorio = new SqlClient.Repositorio();
+            SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
 
             if (string.IsNullOrEmpty(Database))
             {
@@ -80,17 +64,17 @@ namespace CadastroDinamico.Core
             try
             {
                 pkAlteracao = string.Empty;
-                Colunas = repositorio.RetornarColunas(Database, Schema, Nome);
+                Colunas = await repositorio.RetornarColunasAsync(Database, Schema, Nome);
                 TodasColunas = new List<Coluna>();
                 TodasColunas.AddRange(Colunas);
                 CarregarNomesInput();
                 TemChavePrimaria = Colunas.Where(p => p.IsChavePrimaria).FirstOrDefault() != null;
                 TemChaveEstrangeira = Colunas.Where(p => p.IsChaveEstrangeira).FirstOrDefault() != null;
-                camposExibir = repositorio.SelecionarColunasVisiveis(Database, Schema, Nome);
-                ChavesPrimarias = repositorio.RetornarColunasChavePrimariaTabela(Nome, Schema, Database);
+                camposExibir = await repositorio.SelecionarColunasVisiveisAsync(Database, Schema, Nome);
+                ChavesPrimarias = await repositorio.RetornarColunasChavePrimariaTabelaAsync(Nome, Schema, Database);
                 RemoverColunasIgnoradas();
                 QuantidadeCampos = Colunas.Count;
-                CarregarColunasChaveEstrangeira();
+                await CarregarColunasChaveEstrangeiraAsync();
             }
             catch (Exception ex)
             {
@@ -108,14 +92,14 @@ namespace CadastroDinamico.Core
             }
         }
 
-        private void CarregarColunasChaveEstrangeira()
+        private async Task CarregarColunasChaveEstrangeiraAsync()
         {
             /* Carrega SelectList para os campos de chave estrangeira */
             for (int cont = 0; cont < Colunas.Count; cont++)
             {
                 if (Colunas[cont].IsChaveEstrangeira)
                 {
-                    Colunas[cont].ListaSelecao = RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciada);
+                    Colunas[cont].ListaSelecao = await RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciada);
                 }
             }
         }
@@ -144,18 +128,18 @@ namespace CadastroDinamico.Core
             }
         }
 
-        private List<TabelaEstrangeira> RetornarListaTabelaEstrangeira(string tabela)
+        private async Task<List<TabelaEstrangeira>> RetornarListaTabelaEstrangeira(string tabela)
         {
             List<TabelaEstrangeira> itens = null;
-            var repositorio = new SqlClient.Repositorio();
+            var repositorio = new SqlClient.Repositorio(IdServidor);
             string chavePrimaria = "";
             string descricao = "";
 
             try
             {
-                chavePrimaria = repositorio.RetornarColunasChavePrimariaTabela(tabela, Schema, Database)[0].Nome;
-                descricao = repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(Database, Schema, Nome, chavePrimaria);
-                itens = repositorio.SelectTabela(chavePrimaria, descricao, tabela, Schema, Database);
+                chavePrimaria = (await repositorio.RetornarColunasChavePrimariaTabelaAsync(tabela, Schema, Database))[0].Nome;
+                descricao = await repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabelaAsync(Database, Schema, Nome, chavePrimaria);
+                itens = await repositorio.SelectTabelaAsync(chavePrimaria, descricao, tabela, Schema, Database);
             }
             catch (Exception)
             {
@@ -207,24 +191,24 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public void CarregarValores(bool amostra = false, string pk = "")
+        public async Task CarregarValoresAsync(bool amostra = false, string pk = "")
         {
-            var repositorio = new SqlClient.Repositorio();
+            var repositorio = new SqlClient.Repositorio(IdServidor);
             var query = string.Empty;
             var where = string.Empty;
 
             try
             {
                 where = MontarWhereChavesPrimarias(pk);
-                query = RetornarSelect(where, amostra);
+                query = await RetornarSelectAsync(where, amostra);
 
                 if (amostra)
                 {
-                    ValoresMultilinha = repositorio.RetornarValoresAmostraDados(query);
+                    ValoresMultilinha = await repositorio.RetornarValoresAmostraDadosAsync(query);
                 }
                 else
                 {
-                    Valores = repositorio.RetornarValores(query);
+                    Valores = await repositorio.RetornarValoresAsync(query);
                     pkAlteracao = pk;
                 }
             }
@@ -234,21 +218,21 @@ namespace CadastroDinamico.Core
             }
         }
 
-        public string RetornarSelect(string where, bool amostra = false)
+        public async Task<string> RetornarSelectAsync(string where, bool amostra = false)
         {
-            var repositorio = new SqlClient.Repositorio();
+            var repositorio = new SqlClient.Repositorio(IdServidor);
             string query = string.Empty;
             int countTabelasEstrangeiras = 0;
             const string prefixoAlias = "AL";
 
-            var id = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+            var id = await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
             string colDescricao = string.Empty;
 
             List<string> colsList = null;
 
             if (id > 0)
             {
-                colsList = repositorio.SelecionarColunasChaveEstrangeira(id);
+                colsList = await repositorio.SelecionarColunasChaveEstrangeiraAsync(id);
             }
 
             query = "SELECT " + (amostra ? "TOP(10) " : "TOP(1) ");
@@ -371,12 +355,12 @@ namespace CadastroDinamico.Core
             return dataCorreta;
         }
 
-        public string AlterarRegistro(Dictionary<string, string> valores)
+        public async Task<string> AlterarRegistroAsync(Dictionary<string, string> valores)
         {
             string retorno = string.Empty;
             try
             {
-                SqlClient.Repositorio repositorio = new SqlClient.Repositorio();
+                SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
                 var pk = string.Empty;
                 AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores);
 
@@ -384,7 +368,7 @@ namespace CadastroDinamico.Core
                 pk = valores["pk"];
 
                 var query = RetornarUpdate(pk, valoresTratados);
-                retorno = repositorio.AlterarValores(query);
+                retorno = await repositorio.AlterarValoresAsync(query);
             }
             catch(Exception ex)
             {
@@ -394,16 +378,16 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public void SalvarConfiguracoesColunas(List<string> colunasVisiveis, List<string> colunasChave, List<string> colunasFiltro)
+        public async Task SalvarConfiguracoesColunasAsync(List<string> colunasVisiveis, List<string> colunasChave, List<string> colunasFiltro)
         {
             try
             {
-                var repositorio = new SqlClient.Repositorio();
-                var idConfiguracaoTabela = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+                var repositorio = new SqlClient.Repositorio(IdServidor);
+                var idConfiguracaoTabela = await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
                 var idConfiguracaoTabelaColuna = 0;
 
-                repositorio.SalvarConfiguracoesTabela(idConfiguracaoTabela, Database, Schema, Nome);
-                idConfiguracaoTabela = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+                await repositorio.SalvarConfiguracoesTabelaAsync(idConfiguracaoTabela, Database, Schema, Nome);
+                idConfiguracaoTabela = await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
 
                 foreach (var coluna in TodasColunas)
                 {
@@ -423,8 +407,8 @@ namespace CadastroDinamico.Core
                             }
                         }   
                     }
-                    idConfiguracaoTabelaColuna = repositorio.SelecionarIdConfiguracaoTabelaColuna(Database, Schema, Nome, coluna.Nome);
-                    repositorio.SalvarConfiguracaoColuna(idConfiguracaoTabelaColuna, idConfiguracaoTabela, coluna.Nome, visivel, chave, filtro);
+                    idConfiguracaoTabelaColuna = await repositorio.SelecionarIdConfiguracaoTabelaColunaAsync(Database, Schema, Nome, coluna.Nome);
+                    await repositorio.SalvarConfiguracaoColunaAsync(idConfiguracaoTabelaColuna, idConfiguracaoTabela, coluna.Nome, visivel, chave, filtro);
                 }
             }
             catch(Exception ex)
@@ -433,40 +417,40 @@ namespace CadastroDinamico.Core
             }
         }
 
-        public List<string> RetornarColunasVisiveis()
+        public async Task<List<string>> RetornarColunasVisiveisAsync()
         {
-            var repositorio = new SqlClient.Repositorio();
+            var repositorio = new SqlClient.Repositorio(IdServidor);
             List<string> colVisiveisList = new List<string>();
-            var id = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+            var id = await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
 
             if (id > 0)
             {
-                colVisiveisList = repositorio.SelecionarColunasVisiveis(id);
+                colVisiveisList = await repositorio.SelecionarColunasVisiveisAsync(id);
             }
 
 
             return colVisiveisList;
         }
 
-        public List<string> RetornarColunasFiltro()
+        public async Task<List<string>> RetornarColunasFiltroAsync()
         {
-            var repositorio = new SqlClient.Repositorio();
+            var repositorio = new SqlClient.Repositorio(IdServidor);
             List<string> colFiltroList = new List<string>();
-            var id = repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+            var id = await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
 
             if (id > 0)
             {
-                colFiltroList = repositorio.SelecionarColunasFiltro(id);
+                colFiltroList = await repositorio.SelecionarColunasFiltroAsync(id);
             }
 
 
             return colFiltroList;
         }
 
-        public int RetornarIdConfiguracaoTabela()
+        public async Task<int> RetornarIdConfiguracaoTabelaAsync()
         {
-            var repositorio = new SqlClient.Repositorio();
-            return repositorio.SelecionarIdConfiguracaoTabela(Database, Schema, Nome);
+            var repositorio = new SqlClient.Repositorio(IdServidor);
+            return await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
         }
     }
 }

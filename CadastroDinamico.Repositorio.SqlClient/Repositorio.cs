@@ -10,12 +10,19 @@ namespace CadastroDinamico.Repositorio.SqlClient
 {
     public class Repositorio
     {
+        public int IdServidor { get; set; }
+
         private const string DATABASE_NAME = "CAD_DINAMICO";
 
-        public async void CriarObjetosAplicacao(string database, string ansiNullCmd, string quotedIdentCmd)
+        public Repositorio(int idServidor)
+        {
+            IdServidor = idServidor;
+        }
+
+        public async void CriarObjetosAplicacaoAsync(string database, string ansiNullCmd, string quotedIdentCmd)
         {
             var arquivo = new Utils.Arquivo();
-            var conexao = new Conexao(RetornarConnectionString(database));
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
 
             var files = await arquivo.RetornarArquivosDiretorioAsync(Dir.GetParent(Dir.GetCurrentDirectory()) + "\\" + "CadastroDinamico.Dominio\\Scripts");
             foreach (var file in files)
@@ -28,12 +35,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
 
-        public bool ExisteDatabase(string database)
+        public async Task<bool> ExisteDatabaseAsync(string database)
         {
-            var conexao = new Conexao(RetornarConnectionString());
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
             try
             {
-                return conexao.RetornarDados("SELECT database_id FROM sys.databases WITH(NOLOCK) WHERE name = '" + database + "'")?.Rows?.Count > 0;
+                return (await conexao.RetornarDadosAsync("SELECT database_id FROM sys.databases WITH(NOLOCK) WHERE name = '" + database + "'"))?.Rows?.Count > 0;
             }
             catch(Exception)
             {
@@ -41,12 +48,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
 
-        public void CriarDatabase(string database)
+        public async Task CriarDatabaseAsync(string database)
         {
-            var conexao = new Conexao(RetornarConnectionString());
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
             try
             {
-                conexao.ExecutarQuery("CREATE DATABASE " + database);
+                await conexao.ExecutarQueryAsync("CREATE DATABASE " + database);
             }
             catch (Exception)
             {
@@ -54,38 +61,21 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
 
-        public string RetornarConnectionString()
-        {
-            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
-            BancoDados configuracao = configurador.RetornarConfiguracaoBancoDados();
-            return configuracao.ToString();
-        }
-
         public async Task<string> RetornarConnectionStringAsync()
         {
-            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
-            BancoDados configuracao = await configurador.RetornarConfiguracaoBancoDadosAsync();
-            return configuracao.ToString();
+            return await ConfiguradorBancoDados.RetornarConnectionStringAsync(IdServidor);
         }
 
-        public string RetornarConnectionString(string database)
-        {
-            ConfiguradorBancoDados configurador = new ConfiguradorBancoDados();
-            BancoDados configuracao = configurador.RetornarConfiguracaoBancoDados();
-            configuracao.Database = database;
-            return configuracao.ToString();
-        }
-
-        public List<Database> RetornarDatabases()
+        public async Task<List<Database>> RetornarDatabasesAsync()
         {
             DataTable dados = null;
             List<Database> databases = new List<Database>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = " EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_DATABASES";
-                dados = conexao.RetornarDados(query, 7);
+                dados = await conexao.RetornarDadosAsync(query, 7);
                 if (dados.Rows.Count > 0)
                 {
                     for (int contador = 0; contador < dados.Rows.Count; contador++)
@@ -101,16 +91,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return databases;
         }
 
-        public List<Schema> RetornarSchemas(string database)
+        public async Task<List<Schema>> RetornarSchemasAsync(string database)
         {
             DataTable dados = null;
             List<Schema> schemas = new List<Schema>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = " EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_SCHEMAS '" + database + "'";
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int contador = 0; contador < dados.Rows.Count; contador++)
@@ -126,16 +116,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return schemas;
         }
 
-        public List<Tabela> RetornarTabelas(string database, string schema)
+        public async Task<List<Tabela>> RetornarTabelasAsync(string database, string schema)
         {
             DataTable dados = null;
             List<Tabela> tabelas = new List<Tabela>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_TABELAS '{0}', '{1}' ", database, schema);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int contador = 0; contador < dados.Rows.Count; contador++)
@@ -151,23 +141,23 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return tabelas;
         }
 
-        public List<string> SelecionarColunasFiltro(string database, string schema, string tabela)
+        public async Task<List<string>> SelecionarColunasFiltroAsync(string database, string schema, string tabela)
         {
             DataTable dados = null;
             string colFiltro = string.Empty;
             int id = 0;
             List<string> colunas = new List<string>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
-                colunas = SelecionarColunasVisiveis(id);
+                colunas = await SelecionarColunasVisiveisAsync(id);
             }
             catch (Exception)
             {
@@ -176,16 +166,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public List<string> SelecionarColunasFiltro(int id)
+        public async Task<List<string>> SelecionarColunasFiltroAsync(int id)
         {
             DataTable dados = null;
             List<string> colunas = new List<string>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_FILTRO {1} ", DATABASE_NAME, id);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int i = 0; i < dados.Rows.Count; i++)
@@ -201,16 +191,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public List<Coluna> RetornarColunas(string database, string schema, string tabela)
+        public async Task<List<Coluna>> RetornarColunasAsync(string database, string schema, string tabela)
         {
             DataTable dados = null;
             List<Coluna> colunas = new List<Coluna>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_DADOS_TABELA '{0}', '{1}', '{2}' ", tabela, schema, database);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int contador = 0; contador < dados.Rows.Count; contador++)
@@ -240,16 +230,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public int SelecionarIdConfiguracaoTabela(string database, string schema, string tabela)
+        public async Task<int> SelecionarIdConfiguracaoTabelaAsync(string database, string schema, string tabela)
         {
             DataTable dados = null;
             int codigo = 0;
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     codigo = Convert.ToInt32(dados.Rows[0][0].ToString());
@@ -262,17 +252,17 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return codigo;
         }
 
-        public int SelecionarIdConfiguracaoTabelaColuna(string database, string schema, string tabela, string coluna)
+        public async Task<int> SelecionarIdConfiguracaoTabelaColunaAsync(string database, string schema, string tabela, string coluna)
         {
             DataTable dados = null;
             int codigo = 0;
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA_COLUNA '{0}', '{1}', '{2}', '{3}' ",
                     database, schema, tabela, coluna);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     codigo = Convert.ToInt32(dados.Rows[0][0].ToString());
@@ -285,22 +275,22 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return codigo;
         }
 
-        public List<string> SelecionarColunasVisiveis(string database, string schema, string tabela)
+        public async Task<List<string>> SelecionarColunasVisiveisAsync(string database, string schema, string tabela)
         {
             DataTable dados = null;
             List<string> colunas = new List<string>();
             int id = 0;
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_ID_CONFIGURACAO_TABELA '{0}', '{1}', '{2}' ", database, schema, tabela);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
-                colunas = SelecionarColunasVisiveis(id);
+                colunas = await SelecionarColunasVisiveisAsync(id);
             }
             catch (Exception)
             {
@@ -309,16 +299,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public List<string> SelecionarColunasVisiveis(int id)
+        public async Task<List<string>> SelecionarColunasVisiveisAsync(int id)
         {
             DataTable dados = null;
             List<string> colunas = new List<string>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_VISIVEIS {1} ", DATABASE_NAME, id);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int i = 0; i < dados.Rows.Count; i++)
@@ -334,16 +324,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public List<string> SelecionarColunasChaveEstrangeira(int id)
+        public async Task<List<string>> SelecionarColunasChaveEstrangeiraAsync(int id)
         {
             DataTable dados = null;
             List<string> colunas = new List<string>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_SEL_COLUNAS_CHAVE {0} ", id);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int i = 0; i < dados.Rows.Count; i++)
@@ -359,16 +349,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return colunas;
         }
 
-        public string SalvarConfiguracoesTabela(int id, string database, string schema, string table)
+        public async Task<string> SalvarConfiguracoesTabelaAsync(int id, string database, string schema, string table)
         {
             var retorno = string.Empty;
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 string query = string.Format(" EXEC " + DATABASE_NAME + ".DBO.PRC_IU_CONFIGURACAO_TABELA {0}, '{1}', '{2}', '{3}' ",
                     id, database, schema, table);
-                conexao.ExecutarQuery(query);
+                await conexao.ExecutarQueryAsync(query);
             }
             catch (Exception ex)
             {
@@ -377,17 +367,17 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public void SalvarConfiguracaoColuna(int idConfiguracaoTabelaColuna, int idConfiguracaoTabela, string coluna,
+        public async Task SalvarConfiguracaoColunaAsync(int idConfiguracaoTabelaColuna, int idConfiguracaoTabela, string coluna,
             bool visivel, string colunaDescricao, bool filtro)
         {
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
                 var query = string.Format("EXEC {0}.DBO.PRC_IU_CONFIGURACAO_TABELA_COLUNA {1}, {2}, '{3}', {4}, '{5}', {6} ", 
                     DATABASE_NAME, idConfiguracaoTabelaColuna, idConfiguracaoTabela, coluna, visivel ? 1 : 0, colunaDescricao,
                     filtro ? 1 : 0);
-                conexao.ExecutarQuery(query);
+                await conexao.ExecutarQueryAsync(query);
             }
              catch (Exception)
             {
@@ -395,14 +385,14 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
 
-        public List<TabelaEstrangeira> SelectTabela(string chavePrimaria, string descricao, string tabela, string schema, string database)
+        public async Task<List<TabelaEstrangeira>> SelectTabelaAsync(string chavePrimaria, string descricao, string tabela, string schema, string database)
         {
             var retorno = new List<TabelaEstrangeira>();
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
-                var consulta = conexao.RetornarDados(string.Format("SELECT {0}, {1} FROM {2}.{3}.{4}", chavePrimaria, descricao, database, schema, tabela));
+                var consulta = await conexao.RetornarDadosAsync(string.Format("SELECT {0}, {1} FROM {2}.{3}.{4}", chavePrimaria, descricao, database, schema, tabela));
                 if ((consulta?.Rows?.Count ?? 0) > 0)
                 {
                     for (int cont = 0; cont < consulta.Rows.Count; cont++)
@@ -422,25 +412,25 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public List<Coluna> RetornarColunasChavePrimariaTabela(string tabela, string schema, string database)
+        public async Task<List<Coluna>> RetornarColunasChavePrimariaTabelaAsync(string tabela, string schema, string database)
         {
             List<Coluna> colChavePrimaria = null;
-            colChavePrimaria = RetornarColunas(database, schema, tabela).Where(p => p.IsChavePrimaria).ToList();
+            colChavePrimaria = (await RetornarColunasAsync(database, schema, tabela)).Where(p => p.IsChavePrimaria).ToList();
             return colChavePrimaria;
         }
 
-        public string SelecionarDescricaoChaveEstrangeiraConfiguracaoTabela(string database, string schema, string tabela, string chavePrimaria)
+        public async Task<string> SelecionarDescricaoChaveEstrangeiraConfiguracaoTabelaAsync(string database, string schema, string tabela, string chavePrimaria)
         {
             DataTable dados = null;
             List<string> colunas = new List<string>();
             string retorno = string.Empty;
-            Conexao conexao = new Conexao(RetornarConnectionString());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
 
             try
             {
-                int id = SelecionarIdConfiguracaoTabela(database, schema, tabela);
+                int id = await SelecionarIdConfiguracaoTabelaAsync(database, schema, tabela);
                 string query = string.Format(" EXEC {0}.DBO.PRC_SEL_COLUNAS_CHAVE {1} ", DATABASE_NAME, id);
-                dados = conexao.RetornarDados(query);
+                dados = await conexao.RetornarDadosAsync(query);
                 if (dados.Rows.Count > 0)
                 {
                     for (int i = 0; i < dados.Rows.Count; i++)
@@ -463,12 +453,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public MatrizValores RetornarValoresAmostraDados(string query)
+        public async Task<MatrizValores> RetornarValoresAmostraDadosAsync(string query)
         {
             DataTable dados = null;
-            var conexao = new Conexao(RetornarConnectionString());
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
 
-            dados = conexao.RetornarDados(query);
+            dados = await conexao.RetornarDadosAsync(query);
 
             var retorno = new MatrizValores(dados.Rows.Count, dados.Columns.Count);
 
@@ -487,12 +477,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public List<object> RetornarValores(string query)
+        public async Task<List<object>> RetornarValoresAsync(string query)
         {
             DataTable dados = null;
-            var conexao = new Conexao(RetornarConnectionString());
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
 
-            dados = conexao.RetornarDados(query);
+            dados = await conexao.RetornarDadosAsync(query);
 
             var retorno = new List<object>();
 
@@ -507,12 +497,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public string AlterarValores(string query)
+        public async Task<string> AlterarValoresAsync(string query)
         {
             try
             {
-                var conexao = new Conexao(RetornarConnectionString());
-                var result = conexao.ExecutarQuery(query);
+                var conexao = new Conexao(await RetornarConnectionStringAsync());
+                var result = await conexao.ExecutarQueryAsync(query);
             }
             catch(Exception ex)
             {

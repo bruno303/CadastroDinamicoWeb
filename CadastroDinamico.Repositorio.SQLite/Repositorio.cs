@@ -8,22 +8,39 @@ namespace CadastroDinamico.Repositorio.SQLite
 {
     public class Repositorio
     {
-        public async Task CriaBaseSQLite()
+        public async Task CriarBaseSQLiteAsync()
         {
             var conexao = new Conexao();
 
             if (!conexao.RetornaBaseExistente())
             {
                 conexao.CriarBancoDados();
-                await CriarTabelaAsync();
+                await CriarTabelaUsuarioAsync();
                 await CriarUsuarioAdminAsync();
+                await CriarTabelaServidorAsync();
             }
         }
 
-        private async Task CriarTabelaAsync()
+        private async Task CriarTabelaUsuarioAsync()
         {
             var conexao = new Conexao();
             await conexao.ExecutarQueryAsync("CREATE TABLE USUARIO (ID_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, NOME TEXT, LOGIN TEXT, SENHA TEXT);");
+        }
+
+        private async Task CriarTabelaServidorAsync()
+        {
+            var conexao = new Conexao();
+            var query = new System.Text.StringBuilder();
+            query.AppendLine("CREATE TABLE SERVIDOR");
+            query.AppendLine("(");
+            query.AppendLine("    ID_SERVIDOR INTEGER PRIMARY KEY AUTOINCREMENT,");
+            query.AppendLine("    HOSTNAME TEXT,");
+            query.AppendLine("    INSTANCIA TEXT,");
+            query.AppendLine("    USUARIO TEXT,");
+            query.AppendLine("    SENHA TEXT");
+            query.AppendLine(");");
+
+            await conexao.ExecutarQueryAsync(query.ToString());
         }
 
         private async Task CriarUsuarioAdminAsync()
@@ -71,12 +88,13 @@ namespace CadastroDinamico.Repositorio.SQLite
             await conexao.ExecutarQueryAsync(query);
         }
 
-        public async Task<List<Usuario>> RetornarUsuarios()
+        public async Task<List<Usuario>> RetornarUsuariosAsync()
         {
             var conexao = new Conexao();
             var query = " SELECT ID_USUARIO, NOME, LOGIN, SENHA FROM USUARIO; ";
             var retorno = new List<Usuario>();
 
+            await CriarBaseSQLiteAsync();
             var dados = await conexao.RetornarDadosAsync(query);
 
             if (dados.Rows.Count > 0)
@@ -96,12 +114,13 @@ namespace CadastroDinamico.Repositorio.SQLite
             return retorno;
         }
 
-        public async Task<Usuario> RetornarUsuario(int idUsuario)
+        public async Task<Usuario> RetornarUsuarioAsync(int idUsuario)
         {
             var conexao = new Conexao();
             var query = $" SELECT ID_USUARIO, NOME, LOGIN, SENHA FROM USUARIO WHERE ID_USUARIO = {idUsuario.ToString()}; ";
             var retorno = new Usuario();
 
+            await CriarBaseSQLiteAsync();
             var dados = await conexao.RetornarDadosAsync(query);
 
             if (dados.Rows.Count > 0)
@@ -113,6 +132,84 @@ namespace CadastroDinamico.Repositorio.SQLite
             }
 
             return retorno;
+        }
+
+        public async Task<List<Servidor>> RetornarServidoresAsync()
+        {
+            var conexao = new Conexao();
+            var query = " SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA FROM SERVIDOR; ";
+            var retorno = new List<Servidor>();
+
+            await CriarBaseSQLiteAsync();
+            var dados = await conexao.RetornarDadosAsync(query);
+
+            if (dados.Rows.Count > 0)
+            {
+                for (int i = 0; i < dados.Rows.Count; i++)
+                {
+                    retorno.Add(new Servidor()
+                    {
+                        IdServidor = Convert.ToInt32(dados.Rows[i][0].ToString()),
+                        Hostname = dados.Rows[i][1].ToString(),
+                        Instancia = dados.Rows[i][2].ToString(),
+                        Usuario = dados.Rows[i][3].ToString(),
+                        Senha = dados.Rows[i][4].ToString()
+                    });
+                }
+            }
+
+            return retorno;
+        }
+
+        public async Task<Servidor> RetornarServidorAsync(int idServidor)
+        {
+            var conexao = new Conexao();
+            var query = $" SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA FROM SERVIDOR WHERE ID_SERVIDOR = {idServidor.ToString()}; ";
+            var retorno = new Servidor();
+
+            await CriarBaseSQLiteAsync();
+            var dados = await conexao.RetornarDadosAsync(query);
+
+            if (dados.Rows.Count > 0)
+            {
+                retorno.IdServidor = Convert.ToInt32(dados.Rows[0][0].ToString());
+                retorno.Hostname = dados.Rows[0][1].ToString();
+                retorno.Instancia = dados.Rows[0][2].ToString();
+                retorno.Usuario = dados.Rows[0][3].ToString();
+                retorno.Senha = dados.Rows[0][4].ToString();
+            }
+
+            return retorno;
+        }
+
+        public async Task CriarServidorAsync(Servidor servidor)
+        {
+            var conexao = new Conexao();
+            var query = "INSERT INTO SERVIDOR(HOSTNAME, INSTANCIA, USUARIO, SENHA) VALUES ";
+            query += $"  ('{servidor.Hostname}', '{servidor.Instancia}', '{servidor.Usuario}', '{servidor.Senha}');";
+
+            await conexao.ExecutarQueryAsync(query);
+            
+        }
+
+        public async Task AlterarServidorAsync(Servidor servidor)
+        {
+            var conexao = new Conexao();
+            var query = $"UPDATE SERVIDOR SET HOSTNAME = '{servidor.Hostname}', " +
+                $"INSTANCIA = '{servidor.Instancia}', " +
+                $"USUARIO = '{servidor.Usuario}', " +
+                $"SENHA = '{servidor.Senha}' " +
+                $"WHERE ID_SERVIDOR = {servidor.IdServidor.ToString()}; ";
+
+            await conexao.ExecutarQueryAsync(query);
+        }
+
+        public async Task DeletarServidorAsync(int idServidor)
+        {
+            var conexao = new Conexao();
+            var query = $"DELETE FROM SERVIDOR WHERE ID_SERVIDOR = {idServidor.ToString()}; ";
+
+            await conexao.ExecutarQueryAsync(query);
         }
     }
 }

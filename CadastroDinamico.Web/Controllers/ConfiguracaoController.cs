@@ -9,6 +9,8 @@ using CadastroDinamico.Web.Models;
 using System.Linq;
 using System;
 using CadastroDinamico.Web.Extension;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -18,6 +20,11 @@ namespace CadastroDinamico.Web.Controllers
         {
             if (this.ValidarLogin())
             {
+                var idServidor = HttpContext.Session.GetInt32("idServidor");
+                if ((!idServidor.HasValue) || idServidor.Value == 0)
+                {
+                    return RedirectToAction("CustomError", "Home", new { mensagem = "O ID do servidor não foi definido!" });
+                }
                 return View();
             }
             else
@@ -26,39 +33,13 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        [HttpPost]
-        public JsonResult SalvarConfiguracoesBancoDados(string values)
+        public async Task<JsonResult> SelecionarDatabases()
         {
             if (this.ValidarLogin())
             {
-                var configurador = new ConfiguradorBancoDados();
-                var json = new UJson();
-
-                try
-                {
-                    BancoDados configuracaoBancoDados = json.ConverterParaObjeto(values);
-                    configurador.AlterarConfiguracaoBancoDados(configuracaoBancoDados);
-                    new ConfiguradorCadastroDinamico().CriarDatabaseAplicacao();
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { result = false, error = ex.Message });
-                }
-
-                return Json(new { result = true, error = string.Empty });
-            }
-            else
-            {
-                return Json(new { result = false, error = "É necessário fazer login na aplicação" }); ;
-            }
-        }
-
-        public JsonResult SelecionarDatabases()
-        {
-            if (this.ValidarLogin())
-            {
-                Repo.Repositorio repositorio = new Repo.Repositorio();
-                var consulta = repositorio.RetornarDatabases();
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                Repo.Repositorio repositorio = new Repo.Repositorio(idServidor);
+                var consulta = await repositorio.RetornarDatabasesAsync();
                 List<DatabaseViewModel> databases = new List<DatabaseViewModel>();
                 if (consulta.Count > 0)
                 {
@@ -76,12 +57,13 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        public JsonResult SelecionarSchemas(string database)
+        public async Task<JsonResult> SelecionarSchemas(string database)
         {
             if (this.ValidarLogin())
             {
-                Repo.Repositorio repositorio = new Repo.Repositorio();
-                var consulta = repositorio.RetornarSchemas(database);
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                Repo.Repositorio repositorio = new Repo.Repositorio(idServidor);
+                var consulta = await repositorio.RetornarSchemasAsync(database);
                 List<SchemaViewModel> schemas = new List<SchemaViewModel>();
                 if (consulta.Count > 0)
                 {
@@ -99,12 +81,13 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        public JsonResult SelecionarTabelas(string database, string schema)
+        public async Task<JsonResult> SelecionarTabelas(string database, string schema)
         {
             if (this.ValidarLogin())
             {
-                Repo.Repositorio repositorio = new Repo.Repositorio();
-                var consulta = repositorio.RetornarTabelas(database, schema);
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                Repo.Repositorio repositorio = new Repo.Repositorio(idServidor);
+                var consulta = await repositorio.RetornarTabelasAsync(database, schema);
                 List<SchemaViewModel> schemas = new List<SchemaViewModel>();
                 if (consulta.Count > 0)
                 {
@@ -121,16 +104,18 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        public JsonResult SelecionarColunas(string database, string schema, string tabela)
+        public async Task<JsonResult> SelecionarColunas(string database, string schema, string tabela)
         {
             if (this.ValidarLogin())
             {
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
                 List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
-                var tabelaCore = new TabelaCore(tabela, schema, database);
+                var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
+                await tabelaCore.CarregarAsync();
 
-                var colVisiveisList = tabelaCore.RetornarColunasVisiveis();
-                var colFiltroList = tabelaCore.RetornarColunasFiltro();
-                var id = tabelaCore.RetornarIdConfiguracaoTabela();
+                var colVisiveisList = await tabelaCore.RetornarColunasVisiveisAsync();
+                var colFiltroList = await tabelaCore.RetornarColunasFiltroAsync();
+                var id = await tabelaCore.RetornarIdConfiguracaoTabelaAsync();
 
                 for (int contador = 0; contador < tabelaCore.TodasColunas.Count; contador++)
                 {
@@ -152,13 +137,14 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         [HttpPost]
-        public JsonResult GravarConfiguracoesTabela(string dados, string dadosfk, string dadosfiltro)
+        public async Task<JsonResult> GravarConfiguracoesTabela(string dados, string dadosfk, string dadosfiltro)
         {
             if (this.ValidarLogin())
             {
                 try
                 {
-                    Repo.Repositorio repositorio = new Repo.Repositorio();
+                    var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                    Repo.Repositorio repositorio = new Repo.Repositorio(idServidor);
                     if (!string.IsNullOrEmpty(dados))
                     {
                         var dadosBanco = dados.Split("|")[0];
@@ -167,9 +153,10 @@ namespace CadastroDinamico.Web.Controllers
                         var schema = dadosBanco.Split(";")[1];
                         var tabela = dadosBanco.Split(";")[2];
 
-                        var tabelaCore = new TabelaCore(tabela, schema, database);
+                        var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
+                        await tabelaCore.CarregarAsync();
 
-                        tabelaCore.SalvarConfiguracoesColunas(colunas.Split(";").ToList(), dadosfk?.Split(";").ToList(), dadosfiltro?.Split(";").ToList());
+                        await tabelaCore.SalvarConfiguracoesColunasAsync(colunas.Split(";").ToList(), dadosfk?.Split(";").ToList(), dadosfiltro?.Split(";").ToList());
                     }
                     else
                     {
@@ -189,29 +176,30 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
-        public JsonResult SelecionarColunasChaveEstrangeira(string database, string schema, string tabela)
+        public async Task<JsonResult> SelecionarColunasChaveEstrangeira(string database, string schema, string tabela)
         {
             if (this.ValidarLogin())
             {
-                Repo.Repositorio repositorio = new Repo.Repositorio();
-                var consulta = repositorio.RetornarColunas(database, schema, tabela).Where(p => p.IsChaveEstrangeira).ToList();
+                var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+                Repo.Repositorio repositorio = new Repo.Repositorio(idServidor);
+                var consulta = (await repositorio.RetornarColunasAsync(database, schema, tabela)).Where(p => p.IsChaveEstrangeira).ToList();
                 List<ColunaChaveEstrangeiraViewModel> colunas = new List<ColunaChaveEstrangeiraViewModel>();
 
-                var id = repositorio.SelecionarIdConfiguracaoTabela(database, schema, tabela);
+                var id = await repositorio.SelecionarIdConfiguracaoTabelaAsync(database, schema, tabela);
                 string colDescricao = string.Empty;
 
                 List<string> colsList = null;
 
                 if (id > 0)
                 {
-                    colsList = repositorio.SelecionarColunasChaveEstrangeira(id);
+                    colsList = await repositorio.SelecionarColunasChaveEstrangeiraAsync(id);
                 }
 
                 if (consulta.Count > 0)
                 {
                     for (int contador = 0; contador < consulta.Count; contador++)
                     {
-                        var colunasTabelaReferenciada = repositorio.RetornarColunas(database, schema, consulta[contador].TabelaReferenciada).Select(p => p.Nome).ToList();
+                        var colunasTabelaReferenciada = (await repositorio.RetornarColunasAsync(database, schema, consulta[contador].TabelaReferenciada)).Select(p => p.Nome).ToList();
                         if (colsList != null)
                         {
                             if (colsList.Where(p => p.Split(":")[0].Equals(consulta[contador].Nome)).FirstOrDefault() != null)

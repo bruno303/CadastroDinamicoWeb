@@ -14,8 +14,7 @@ namespace CadastroDinamico.Web.Controllers
         {
             if (this.ValidarLogin())
             {
-                var sqliteCore = new SQLiteCore();
-                var usuarios = await sqliteCore.RetornarUsuariosAsync();
+                var usuarios = await new Repositorio.SQLite.Repositorio().RetornarUsuariosAsync();
                 var usuariosViewModel = new List<UsuarioViewModel>();
 
                 foreach (var usuario in usuarios)
@@ -42,7 +41,7 @@ namespace CadastroDinamico.Web.Controllers
         {
             if (this.ValidarLogin())
             {
-                var usuario = await new SQLiteCore().RetornarUsuarioAsync(id);
+                var usuario = await new Repositorio.SQLite.Repositorio().RetornarUsuarioAsync(id);
                 var usuarioViewModel = new UsuarioViewModel();
 
                 usuarioViewModel.IdUsuario = usuario.IdUsuario;
@@ -102,7 +101,7 @@ namespace CadastroDinamico.Web.Controllers
         {
             if (this.ValidarLogin())
             {
-                await new SQLiteCore().DeletarUsuarioAsync(id);
+                await new Repositorio.SQLite.Repositorio().DeletarUsuarioAsync(id);
                 return RedirectToAction("Index");
             }
             else

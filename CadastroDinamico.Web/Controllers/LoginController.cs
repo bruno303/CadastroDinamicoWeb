@@ -11,7 +11,7 @@ namespace CadastroDinamico.Web.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
@@ -30,6 +30,7 @@ namespace CadastroDinamico.Web.Controllers
                 if (await sqliteCore.ValidarLoginUsuarioAsync(usuario))
                 {
                     HttpContext.Session.SetInt32("idUsuario", sqliteCore.IdUsuario);
+                    HttpContext.Session.SetInt32("idServidor", loginViewModel.Servidor.HasValue ? loginViewModel.Servidor.Value : 0);
                     return RedirectToAction("Index", "Home");
                 }
                 else

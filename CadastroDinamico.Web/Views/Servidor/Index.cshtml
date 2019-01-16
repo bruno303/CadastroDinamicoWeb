@@ -1,23 +1,22 @@
-﻿@model List<UsuarioViewModel>
-
-@{
-    ViewData["Title"] = "Index";
-}
+﻿@model List<ServidorViewModel>
 
 <div class="row">
     <div class="col-md-12">
         <button class="btn btn-secondary" onclick="javascript:history.go(-1)">Voltar</button>
-        <a class="btn btn-outline-secondary padding-cima-baixo" role="button" href="/Usuario/Novo/">Novo Usuário</a>
+        <a class="btn btn-outline-secondary padding-cima-baixo" role="button" href="/Servidor/Novo/">Novo Servidor</a>
         <br />
         <br />
         <table class="table padding-cima-baixo datatable">
             <thead>
                 <tr>
                     <th>
-                        Nome
+                        Hostname
                     </th>
                     <th>
-                        Login
+                        Instância
+                    </th>
+                    <th>
+                        Usuário
                     </th>
                     <th>
                         Ações
@@ -29,16 +28,22 @@
                 {
                     <tr>
                         <td>
-                            @item.Nome
+                            @item.Hostname
                         </td>
                         <td>
-                            @item.Login
+                            @item.Instancia
                         </td>
                         <td>
-                            <a href=@("/Usuario/Editar/" + item.IdUsuario.ToString()) role="button" class="btn btn-success btn-sm">
+                            @item.Usuario
+                        </td>
+                        <td>
+                            <a href=@("/Servidor/Usar/" + item.IdServidor.ToString()) role="button" class="btn btn-primary btn-sm">
+                                <i class="glyphicon glyphicon-pencil"></i> Usar
+                            </a>
+                            <a href=@("/Servidor/Editar/" + item.IdServidor.ToString()) role="button" class="btn btn-success btn-sm">
                                 <i class="glyphicon glyphicon-pencil"></i> Editar
                             </a>
-                            <a href=@("/Usuario/Deletar/" + item.IdUsuario.ToString()) role="button" class="btn btn-danger btn-sm">
+                            <a href=@("/Servidor/Deletar/" + item.IdServidor.ToString()) role="button" class="btn btn-danger btn-sm">
                                 <i class="glyphicon glyphicon-pencil"></i> Deletar
                             </a>
                         </td>

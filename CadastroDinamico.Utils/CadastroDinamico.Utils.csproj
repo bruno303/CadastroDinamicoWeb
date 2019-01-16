@@ -8,4 +8,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CadastroDinamico.Dominio\CadastroDinamico.Dominio.csproj" />
+    <ProjectReference Include="..\CadastroDinamico.Repositorio.SQLite\CadastroDinamico.Repositorio.SQLite.csproj" />
+  </ItemGroup>
+
 </Project>

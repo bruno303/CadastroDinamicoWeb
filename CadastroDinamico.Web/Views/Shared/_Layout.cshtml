@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@using CadastroDinamico.Web.Extension
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -17,7 +20,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; Cadastro Dinâmico - @DateTime.Now.Year.ToString()</p>
+            <p>&copy; Cadastro Dinâmico - @DateTime.Now.Year.ToString() | @await this.RetornarHostnameServidor(Context.Session.GetInt32("idServidor").Value)  </p>
         </footer>
     </div>
 
