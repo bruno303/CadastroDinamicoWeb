@@ -1,5 +1,6 @@
 ﻿using CadastroDinamico.Core;
 using CadastroDinamico.Dominio;
+using CadastroDinamico.Web.Filters;
 using CadastroDinamico.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,7 @@ namespace CadastroDinamico.Web.Controllers
             }
         }
 
+        [CadDinamicoAuth]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

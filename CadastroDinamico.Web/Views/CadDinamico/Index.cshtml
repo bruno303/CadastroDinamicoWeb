@@ -16,7 +16,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <button class="btn btn-outline-secondary m-botom" onclick="javascript:history.go(-1)">Voltar</button>
+            <a role="button" class="btn btn-outline-secondary m-botom" href="/Configuracao/Index"><i class="fas fa-hand-point-left"></i></a>
             <br />
             <h2>@ViewBag.Title</h2>
         </div>
@@ -44,7 +44,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="table-responsive-sm">
-                <table id="tableDadosFiltro" class="table table-striped table-sm">
+                <table id="tableDadosFiltro" class="table table-striped table-sm datatable">
                     <thead>
                         <tr>
                             @for (int coluna = 0; coluna < Model.Colunas.Count; coluna++)
@@ -80,8 +80,8 @@
                                 }
                                 <td>
                                     @{ string url = string.Format("/CadDinamico/TelaDinamicaAlteracao?database={0}&schema={1}&tabela={2}&pk={3}", Model.Database, Model.Schema, Model.Nome, Model.MontarUrlChavesPrimarias(linha)); }
-                                    <a role="button" href="@url">Editar</a> |
-                                    <a role="button" href="@url">Excluir</a>
+                                    <a role="button" class="btn btn-success btn-sm" href="@url" title="Editar"><i class="fas fa-edit"></i></a>
+                                    <a role="button" class="btn btn-danger btn-sm" href="@url" title="Excluir"><i class="fas fa-trash-alt"></i></a>
                                 </td>
                             </tr>
                         }
@@ -95,12 +95,5 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="~/lib/datatables/datatables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.18/fh-3.1.4/r-2.2.2/datatables.min.js"></script>
-    <environment include="Development">
-        <script type="text/javascript" src="~/js/cadDinamicoIndex.js"></script>
-    </environment>
-    <environment exclude="Development">
-        <script type="text/javascript" src="~/js/cadDinamicoIndex.min.js"></script>
-    </environment>
+    <script type="text/javascript" src="~/js/useDatatable.min.js"></script>
 }

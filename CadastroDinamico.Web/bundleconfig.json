@@ -34,17 +34,6 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/cadDinamicoIndex.min.js",
-    "inputFiles": [
-      "wwwroot/js/cadDinamicoIndex.js"
-    ],
-    "minify": {
-      "enabled": true,
-      "renameLocals": true
-    },
-    "sourceMap": false
-  },
-  {
     "outputFileName": "wwwroot/js/site.min.js",
     "inputFiles": [
       "wwwroot/lib/jquery/dist/jquery.js",
@@ -61,6 +50,18 @@
     "inputFiles": [
       "wwwroot/lib/jquery-validation/dist/jquery.validate.js",
       "wwwroot/lib/jquery-validation-unobstrusive/dist/jquery.validate.unobstrusve.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/js/useDatatable.min.js",
+    "inputFiles": [
+      "wwwroot/lib/datatables/datatables.min.js",
+      "wwwroot/js/useDatatable.js"
     ],
     "minify": {
       "enabled": true,

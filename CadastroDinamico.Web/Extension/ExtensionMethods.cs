@@ -62,18 +62,6 @@ namespace CadastroDinamico.Web.Extension
             }
         }
 
-        public static bool ValidarLogin(this Controller controller)
-        {
-            try
-            {
-                return controller.HttpContext.Session.GetInt32("idUsuario") > 0;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
         public static async Task<HtmlString> RetornarHostnameServidor(this RazorPage razorPage, int idServidor)
         {
             var servidor = await new Repositorio.SQLite.Repositorio().RetornarServidorAsync(idServidor);
