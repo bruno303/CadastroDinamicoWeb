@@ -10,9 +10,11 @@ namespace CadastroDinamico.Web.Controllers
 {
     public class LoginController : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(new LoginViewModel());
+            var loginViewModel = new LoginViewModel();
+            await loginViewModel.CarregarServidoresAsync();
+            return View(loginViewModel);
         }
 
         [HttpPost]
@@ -37,12 +39,14 @@ namespace CadastroDinamico.Web.Controllers
                 else
                 {
                     ModelState.AddModelError("", "Usuário e/ou senha não encontrados.");
+                    await loginViewModel.CarregarServidoresAsync();
                     return View("Index", loginViewModel);
                 }
             }
             else
             {
                 ModelState.AddModelError("", "Ocorreu um erro ao tentar realizar o login.");
+                await loginViewModel.CarregarServidoresAsync();
                 return View("Index", loginViewModel);
             }
         }

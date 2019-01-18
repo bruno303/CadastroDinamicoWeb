@@ -7,11 +7,15 @@
 }
 
 .container-fluid {
-    padding: 0px 0px 0px 0px;
+    padding: 0px 15px 0px 15px;
+}
+
+.container-fluid .body-content {
+    overflow-x: auto;
 }
 
 #modalLoading img {
-    top:50%;
+    top: 50%;
     height: 200px;
     position: relative;
     margin-top: -100px;

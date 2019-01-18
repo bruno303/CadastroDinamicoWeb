@@ -10,7 +10,7 @@
 
     <title>Cadastro Dinâmico</title>
 
-    <link rel="stylesheet" href="~/css/site.min.css" />
+    <link rel="stylesheet" href="~/bundles/css/site.min.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
           integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
           crossorigin="anonymous">
@@ -21,7 +21,7 @@
     <partial name="_NavBar">
     <partial name="_CookieConsentPartial" />
 
-    <div class="container body-content">
+    <div class="container-fluid body-content">
         @RenderBody()
         <hr />
         <footer>
@@ -29,7 +29,7 @@
         </footer>
     </div>
 
-    <script type="text/javascript" src="~/js/site.min.js"></script>
+    <script type="text/javascript" src="~/bundles/js/site.min.js"></script>
 
     @RenderSection("Scripts", required: false)
 </body>

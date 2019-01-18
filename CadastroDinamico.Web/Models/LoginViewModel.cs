@@ -1,6 +1,7 @@
 ﻿using CadastroDinamico.Dominio;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Web.Models
 {
@@ -16,12 +17,7 @@ namespace CadastroDinamico.Web.Models
 
         public List<Servidor> Servidores { get; set; }
 
-        public LoginViewModel()
-        {
-            CarregarServidoresAsync();
-        }
-
-        public async void CarregarServidoresAsync()
+        public async Task CarregarServidoresAsync()
         {
             Servidores = await new Repositorio.SQLite.Repositorio().RetornarServidoresAsync();
         }

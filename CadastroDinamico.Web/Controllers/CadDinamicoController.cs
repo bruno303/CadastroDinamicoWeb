@@ -17,7 +17,7 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<IActionResult> Index(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
-            ViewBag.Title = string.Format("{0}.{1}.{2}", database, schema, tabela).ToUpper();
+            ViewBag.Title = tabela;
 
             var repositorio = new Repo.Repositorio(idServidor);
             TabelaCore dadosTabela = null;

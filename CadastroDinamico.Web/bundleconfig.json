@@ -1,6 +1,6 @@
 [
   {
-    "outputFileName": "wwwroot/css/site.min.css",
+    "outputFileName": "wwwroot/bundles/css/site.min.css",
     "inputFiles": [
       "wwwroot/lib/bootstrap/dist/css/bootstrap.css",
       "wwwroot/css/site.css"
@@ -12,7 +12,7 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/configuracaoIndex.min.js",
+    "outputFileName": "wwwroot/bundles/js/configuracaoIndex.min.js",
     "inputFiles": [
       "wwwroot/js/configuracaoIndex.js"
     ],
@@ -23,7 +23,7 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/cadDinamicoAlteracao.min.js",
+    "outputFileName": "wwwroot/bundles/js/cadDinamicoAlteracao.min.js",
     "inputFiles": [
       "wwwroot/js/cadDinamicoAlteracao.js"
     ],
@@ -34,7 +34,7 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/site.min.js",
+    "outputFileName": "wwwroot/bundles/js/site.min.js",
     "inputFiles": [
       "wwwroot/lib/jquery/dist/jquery.js",
       "wwwroot/lib/bootstrap/dist/js/bootstrap.js"
@@ -46,7 +46,7 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/validate.min.js",
+    "outputFileName": "wwwroot/bundles/js/validate.min.js",
     "inputFiles": [
       "wwwroot/lib/jquery-validation/dist/jquery.validate.js",
       "wwwroot/lib/jquery-validation-unobstrusive/dist/jquery.validate.unobstrusve.js"
@@ -58,7 +58,7 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/js/useDatatable.min.js",
+    "outputFileName": "wwwroot/bundles/js/useDatatable.min.js",
     "inputFiles": [
       "wwwroot/lib/datatables/datatables.min.js",
       "wwwroot/js/useDatatable.js"

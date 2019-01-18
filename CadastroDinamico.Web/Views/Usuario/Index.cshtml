@@ -12,45 +12,47 @@
         </a>
         <br />
         <br />
-        <table class="table padding-cima-baixo datatable">
-            <thead>
-                <tr>
-                    <th>
-                        Nome
-                    </th>
-                    <th>
-                        Login
-                    </th>
-                    <th>
-                        Ações
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+        <div class="table-responsive table-striped">
+            <table class="table padding-cima-baixo datatable">
+                <thead>
                     <tr>
-                        <td>
-                            @item.Nome
-                        </td>
-                        <td>
-                            @item.Login
-                        </td>
-                        <td>
-                            <a href=@("/Usuario/Editar/" + item.IdUsuario.ToString()) role="button" class="btn btn-success btn-sm" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href=@("/Usuario/Deletar/" + item.IdUsuario.ToString()) role="button" class="btn btn-danger btn-sm" title="Deletar">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </td>
+                        <th>
+                            Nome
+                        </th>
+                        <th>
+                            Login
+                        </th>
+                        <th>
+                            Ações
+                        </th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @item.Nome
+                            </td>
+                            <td>
+                                @item.Login
+                            </td>
+                            <td>
+                                <a href=@("/Usuario/Editar/" + item.IdUsuario.ToString()) role="button" class="btn btn-success btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href=@("/Usuario/Deletar/" + item.IdUsuario.ToString()) role="button" class="btn btn-danger btn-sm" title="Deletar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="~/js/useDatatable.min.js"></script>
+    <script type="text/javascript" src="~/bundles/js/useDatatable.min.js"></script>
 }
