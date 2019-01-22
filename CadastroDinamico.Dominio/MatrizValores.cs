@@ -28,13 +28,18 @@ namespace CadastroDinamico.Dominio
             }
         }
 
-        public void SetValor(int linha, int coluna, object valor)
+        public void SetValor(int linha, int coluna, object valor, string pk)
         {
             if (objeto.Count <= linha)
             {
-                objeto.Add(new RegistroTabela());
+                objeto.Add(new RegistroTabela(pk));
             }
             objeto[linha].AdicionarColuna(valor);
+        }
+
+        public string GetPk(int linha)
+        {
+            return objeto[linha].GetPk();
         }
     }
 }

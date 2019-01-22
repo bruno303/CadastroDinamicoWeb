@@ -23,6 +23,7 @@ namespace CadastroDinamico.Core
         public int QuantidadeColunas { get; set; }
         public int QuantidadeLinhas { get; set; }
         public int IdServidor { get; set; }
+        public bool IsIdentity { get; set; }
 
         private List<string> camposExibir;
         private string pkAlteracao;
@@ -75,6 +76,7 @@ namespace CadastroDinamico.Core
                 RemoverColunasIgnoradas();
                 QuantidadeCampos = Colunas.Count;
                 await CarregarColunasChaveEstrangeiraAsync();
+                IsIdentity = Colunas.FirstOrDefault().IsIdentity;
             }
             catch (Exception ex)
             {
@@ -148,7 +150,7 @@ namespace CadastroDinamico.Core
             return itens;
         }
 
-        private string MontarWhereChavesPrimarias(string pk)
+        private string MontarWhereChavesPrimarias(string pk, bool useAlias = true)
         {
             var retorno = string.Empty;
             if (!string.IsNullOrEmpty(pk) && pk.IndexOf(":") > 0)
@@ -163,7 +165,14 @@ namespace CadastroDinamico.Core
                         {
                             retorno += " AND ";
                         }
-                        retorno += chaveValor[0] + " = " + chaveValor[1];
+                        if (useAlias)
+                        {
+                            retorno += $"AL0.{chaveValor[0]} = {chaveValor[1]}";
+                        }
+                        else
+                        {
+                            retorno += $"{chaveValor[0]} = {chaveValor[1]}";
+                        }
                     }
                 }
             }
@@ -236,6 +245,25 @@ namespace CadastroDinamico.Core
             }
 
             query = "SELECT " + (amostra ? "TOP(10) " : "TOP(1) ");
+            /* Montar Select da PK */
+            if (Colunas.Where(p => p.IsChavePrimaria).Count() > 0)
+            {
+                for (int i = 0; i < Colunas.Count; i++)
+                {
+                    if (Colunas[i].IsChavePrimaria)
+                    {
+                        query += $"'{Colunas[i].Nome}:' + CAST(AL0.{Colunas[i].Nome} AS VARCHAR) + ';' +";
+                    }
+                }
+                query = query.Remove(query.Length - 8, 8);
+
+                query += " AS PK, ";
+            }
+            else
+            {
+                query += "'' AS PK, ";
+            }
+
             for (int i = 0; i < Colunas.Count; i++)
             {
                 if (Colunas[i].IsChaveEstrangeira)
@@ -295,45 +323,142 @@ namespace CadastroDinamico.Core
                 {
                     string valorParametro = valores[Colunas[cont].Nome].ToString();
 
-                    if (Colunas[cont].Tipo.ToUpper() == "DATE" ||
-                            Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
-                            Colunas[cont].Tipo.ToUpper() == "DATETIME2")
+                    if (valorParametro.ToUpper() != "NULL")
                     {
-                        valorParametro = AjustarFormatoData(valorParametro);
-                    }
-
-                    if (Colunas[cont].Tipo.ToUpper() == "VARCHAR" ||
-                        Colunas[cont].Tipo.ToUpper() == "CHAR" ||
-                        Colunas[cont].Tipo.ToUpper() == "NVARCHAR" ||
-                        Colunas[cont].Tipo.ToUpper() == "NCHAR" ||
-                        Colunas[cont].Tipo.ToUpper() == "DATE" ||
-                        Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
-                        Colunas[cont].Tipo.ToUpper() == "TIME" ||
-                        Colunas[cont].Tipo.ToUpper() == "TIMESPAN" ||
-                        Colunas[cont].Tipo.ToUpper() == "DATETIME2")
-                    {
-                        valorParametro = "'" + valorParametro + "'";
-                    }
-                    else if (Colunas[cont].Tipo.ToUpper() == "BIT")
-                    {
-                        if (valorParametro.ToUpper() == bool.TrueString.ToUpper() || valorParametro.ToUpper() == "ON")
+                        if (Colunas[cont].Tipo.ToUpper() == "DATE" ||
+                                Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
+                                Colunas[cont].Tipo.ToUpper() == "DATETIME2")
                         {
-                            valorParametro = "1";
+                            valorParametro = AjustarFormatoData(valorParametro);
                         }
-                        else
+
+                        if (Colunas[cont].Tipo.ToUpper() == "VARCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "CHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "NVARCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "NCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATE" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
+                            Colunas[cont].Tipo.ToUpper() == "TIME" ||
+                            Colunas[cont].Tipo.ToUpper() == "TIMESPAN" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATETIME2")
                         {
-                            valorParametro = "0";
+                            valorParametro = "'" + valorParametro + "'";
+                        }
+                        else if (Colunas[cont].Tipo.ToUpper() == "BIT")
+                        {
+                            if (valorParametro.ToUpper() == bool.TrueString.ToUpper() || valorParametro.ToUpper() == "ON")
+                            {
+                                valorParametro = "1";
+                            }
+                            else
+                            {
+                                valorParametro = "0";
+                            }
                         }
                     }
                     query += string.Format("{0} = {1}, ", Colunas[cont].Nome, valorParametro);
+                }
+                else  if (Colunas[cont].IsChaveEstrangeira)
+                {
+                    query += string.Format("{0} = {1}, ", Colunas[cont].Nome, valores[Colunas[cont].Nome].ToString());
                 }
             }
             query = query.Substring(0, query.Length - 2);
 
             if (!string.IsNullOrWhiteSpace(pk))
             {
-                query += " WHERE " + MontarWhereChavesPrimarias(pk);
+                query += " WHERE " + MontarWhereChavesPrimarias(pk, false);
             }
+
+            return query;
+        }
+
+        public async Task<string> RetornarInsert(Dictionary<string, object> valores)
+        {
+            string query = string.Empty;
+            var repositorio = new SqlClient.Repositorio(IdServidor);
+
+            /* Monta cabeçalho */
+            query = string.Format("INSERT INTO {0}.{1}.{2} ( ", Database, Schema, Nome);
+            for (int cont = 0; cont < Colunas.Count; cont++)
+            {
+                if (!Colunas[cont].IsChavePrimaria)
+                {
+                    query += Colunas[cont].Nome + ", ";
+                }
+                else if (Colunas[cont].IsChaveEstrangeira)
+                {
+                    query += Colunas[cont].Nome + ", ";
+                }
+                else if (!IsIdentity)
+                {
+                    query += Colunas[cont].Nome + ", ";
+                }
+            }
+            query = query.Substring(0, query.Length - 2);
+            query += " ) VALUES ( ";
+
+            /* Monta valores */
+            for (int cont = 0; cont < Colunas.Count; cont++)
+            {
+                if (!Colunas[cont].IsChavePrimaria)
+                {
+                    string valorParametro = valores[Colunas[cont].Nome].ToString();
+
+                    if (valorParametro.ToUpper() != "NULL")
+                    {
+                        if (Colunas[cont].Tipo.ToUpper() == "DATE" ||
+                                Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
+                                Colunas[cont].Tipo.ToUpper() == "DATETIME2")
+                        {
+                            valorParametro = AjustarFormatoData(valorParametro);
+                        }
+
+                        if (Colunas[cont].Tipo.ToUpper() == "VARCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "CHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "NVARCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "NCHAR" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATE" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATETIME" ||
+                            Colunas[cont].Tipo.ToUpper() == "TIME" ||
+                            Colunas[cont].Tipo.ToUpper() == "TIMESPAN" ||
+                            Colunas[cont].Tipo.ToUpper() == "DATETIME2")
+                        {
+                            valorParametro = "'" + valorParametro + "'";
+                        }
+                        else if (Colunas[cont].Tipo.ToUpper() == "BIT")
+                        {
+                            if (valorParametro.ToUpper() == bool.TrueString.ToUpper() || valorParametro.ToUpper() == "ON")
+                            {
+                                valorParametro = "1";
+                            }
+                            else
+                            {
+                                valorParametro = "0";
+                            }
+                        }
+                    }
+                    query += valorParametro + ", ";
+                }
+                else // Tratar chave primária
+                {
+                    if (Colunas[cont].IsChaveEstrangeira)
+                    {
+                        string valorParametro = valores[Colunas[cont].Nome].ToString();
+
+                        query += valorParametro + ", ";
+                    }
+                    else if (!IsIdentity)
+                    {
+                        string valorParametro = (await repositorio.RetornarProximaChavePrimaria(Database, Schema, Nome,
+                            Colunas[cont].Nome)).ToString();
+
+                        query += valorParametro + ", ";
+                    }
+                }
+            }
+            query = query.Substring(0, query.Length - 2);
+            query += " )";
 
             return query;
         }
@@ -371,6 +496,27 @@ namespace CadastroDinamico.Core
                 retorno = await repositorio.AlterarValoresAsync(query);
             }
             catch(Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
+        }
+
+        public async Task<string> InserirRegistroAsync(Dictionary<string, string> valores)
+        {
+            string retorno = string.Empty;
+            try
+            {
+                SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
+                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores);
+
+                var valoresTratados = alteracaoRegistro.GetValoresTratados();
+
+                var query = await RetornarInsert(valoresTratados);
+                retorno = await repositorio.AlterarValoresAsync(query);
+            }
+            catch (Exception ex)
             {
                 throw ex;
             }

@@ -218,7 +218,8 @@ namespace CadastroDinamico.Repositorio.SqlClient
                             IsChavePrimaria = dados.Rows[contador]["IS_PK"].ToString().Equals("1"),
                             IsChaveEstrangeira = dados.Rows[contador]["IS_FK"].ToString().Equals("1"),
                             TabelaReferenciada = dados.Rows[contador]["TABELA_REFERENCIADA"].ToString(),
-                            ColunaReferenciada = dados.Rows[contador]["COLUNA_REFERENCIADA"].ToString()
+                            ColunaReferenciada = dados.Rows[contador]["COLUNA_REFERENCIADA"].ToString(),
+                            IsIdentity = Convert.ToInt32(dados.Rows[contador]["IS_IDENTITY"].ToString()).Equals(1)
                         });
                     }
                 }
@@ -460,16 +461,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             dados = await conexao.RetornarDadosAsync(query);
 
-            var retorno = new MatrizValores(dados.Rows.Count, dados.Columns.Count);
+            var retorno = new MatrizValores(dados.Rows.Count, dados.Columns.Count - 1);
 
             if (dados?.Rows?.Count > 0)
             {
                 
                 for (int lin = 0; lin < dados.Rows.Count; lin++)
                 {
-                    for (int col = 0; col < dados.Columns.Count; col++)
+                    for (int col = 1; col < dados.Columns.Count; col++)
                     {
-                        retorno.SetValor(lin, col, dados.Rows[lin][col].ToString());
+                        retorno.SetValor(lin, col, dados.Rows[lin][col].ToString(), dados.Rows[lin][0].ToString());
                     }
                 }
             }
@@ -488,7 +489,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
 
             if (dados?.Rows?.Count > 0)
             {
-                for (int cont = 0; cont < dados.Columns.Count; cont++)
+                for (int cont = 1; cont < dados.Columns.Count; cont++)
                 {
                     retorno.Add(dados.Rows[0][cont].ToString());
                 }
@@ -509,6 +510,23 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 throw ex;
             }
             return string.Empty;
+        }
+
+        public async Task<int> RetornarProximaChavePrimaria(string database, string schema, string tabela, string colPk)
+        {
+            var retorno = 1;
+
+            var query = $"SELECT COALESCE(MAX({colPk}), 0) + 1 AS PROXIMO FROM {database}.{schema}.{tabela} WITH(NOLOCK)";
+
+            DataTable dados = null;
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
+
+            dados = await conexao.RetornarDadosAsync(query);
+            if (dados.Rows.Count > 0)
+            {
+                retorno = Convert.ToInt32(dados.Rows[0][0].ToString());
+            }
+            return retorno;
         }
     }
 }

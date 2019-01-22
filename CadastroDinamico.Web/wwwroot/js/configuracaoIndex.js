@@ -229,7 +229,7 @@ function desbloquearTela()
     document.getElementById('modalLoading').style.display = 'none';
 }
 
-function gravar() {
+function gravar(abrirCadDinamico = false) {
     let vdados = '';
     let aux = $("#selDatabases")[0].value + ";" + $("#selSchemas")[0].value + ";" +
         $("#selTabelas")[0].value + "|";
@@ -280,7 +280,16 @@ function gravar() {
             url: "/Configuracao/GravarConfiguracoesTabela",
             success: function (data) {
                 if (data.result) {
-                    exibirMensagem("Configurações salvas com sucesso!");
+                    if (abrirCadDinamico) {
+                        let database = document.getElementById("selDatabases").value;
+                        let schema = document.getElementById("selSchemas").value;
+                        let tabela = document.getElementById("selTabelas").value;
+
+                        window.location.href = `/CadDinamico/Index?database=${database}&schema=${schema}&tabela=${tabela}`;
+                    }
+                    else {
+                        exibirMensagem("Configurações salvas com sucesso!");
+                    }
                 }
                 else {
                     exibirMensagem("Erro ao salvar as configurações: " + data.message);
@@ -294,9 +303,5 @@ function gravar() {
 }
 
 function cadDinamico() {
-    let database = document.getElementById("selDatabases").value;
-    let schema = document.getElementById("selSchemas").value;
-    let tabela = document.getElementById("selTabelas").value;
-
-    window.location.href = `/CadDinamico/Index?database=${database}&schema=${schema}&tabela=${tabela}`;
+    gravar(true);
 }
