@@ -24,6 +24,7 @@ namespace CadastroDinamico.Core
         public int QuantidadeLinhas { get; set; }
         public int IdServidor { get; set; }
         public bool IsIdentity { get; set; }
+        public List<Coluna> ColunasFiltro { get; set; }
 
         private List<string> camposExibir;
         private string pkAlteracao;
@@ -37,7 +38,6 @@ namespace CadastroDinamico.Core
             Database = database;
             IdServidor = idServidor;
             Valores = new List<object>();
-            //Carregar();
         }
 
         #endregion
@@ -77,6 +77,7 @@ namespace CadastroDinamico.Core
                 QuantidadeCampos = Colunas.Count;
                 await CarregarColunasChaveEstrangeiraAsync();
                 IsIdentity = Colunas.FirstOrDefault().IsIdentity;
+                await CarregarColunasFiltro();
             }
             catch (Exception ex)
             {
@@ -209,11 +210,11 @@ namespace CadastroDinamico.Core
             try
             {
                 where = MontarWhereChavesPrimarias(pk);
-                query = await RetornarSelectAsync(where, amostra);
+                query = await RetornarSelectAsync(where, amostra, true);
 
                 if (amostra)
                 {
-                    ValoresMultilinha = await repositorio.RetornarValoresAmostraDadosAsync(query);
+                    ValoresMultilinha = await repositorio.RetornarValoresQueryAsync(query);
                 }
                 else
                 {
@@ -227,7 +228,22 @@ namespace CadastroDinamico.Core
             }
         }
 
-        public async Task<string> RetornarSelectAsync(string where, bool amostra = false)
+        public async Task CarregarValoresAsync(string query)
+        {
+            var repositorio = new SqlClient.Repositorio(IdServidor);
+            var where = string.Empty;
+
+            try
+            {
+                ValoresMultilinha = await repositorio.RetornarValoresQueryAsync(query);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<string> RetornarSelectAsync(string where, bool amostra, bool limitarUm)
         {
             var repositorio = new SqlClient.Repositorio(IdServidor);
             string query = string.Empty;
@@ -239,12 +255,17 @@ namespace CadastroDinamico.Core
 
             List<string> colsList = null;
 
+            /* Dá TOP(10) quando não tiver where definido */
+            if (!limitarUm && where == string.Empty)
+            {
+                amostra = true;
+            }
+
             if (id > 0)
             {
                 colsList = await repositorio.SelecionarColunasChaveEstrangeiraAsync(id);
             }
-
-            query = "SELECT " + (amostra ? "TOP(10) " : "TOP(1) ");
+            query = "SELECT " + (amostra ? "TOP(10) " : (limitarUm ? "TOP(1) " : ""));
             /* Montar Select da PK */
             if (Colunas.Where(p => p.IsChavePrimaria).Count() > 0)
             {
@@ -487,7 +508,7 @@ namespace CadastroDinamico.Core
             {
                 SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
                 var pk = string.Empty;
-                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores);
+                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores, false);
 
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
                 pk = valores["pk"];
@@ -509,12 +530,35 @@ namespace CadastroDinamico.Core
             try
             {
                 SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
-                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores);
+                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores, false);
 
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
 
                 var query = await RetornarInsert(valoresTratados);
                 retorno = await repositorio.AlterarValoresAsync(query);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
+        }
+
+        public async Task<string> PesquisarRegistrosAsync(Dictionary<string, string> valores)
+        {
+            string retorno = string.Empty;
+            try
+            {
+                SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
+                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores, true);
+
+                var valoresTratados = alteracaoRegistro.GetValoresTratados();
+
+                var where = MontarWhere(valoresTratados);
+                var query = await RetornarSelectAsync(where, false, false);
+
+                await CarregarValoresAsync(query);
             }
             catch (Exception ex)
             {
@@ -597,6 +641,68 @@ namespace CadastroDinamico.Core
         {
             var repositorio = new SqlClient.Repositorio(IdServidor);
             return await repositorio.SelecionarIdConfiguracaoTabelaAsync(Database, Schema, Nome);
+        }
+
+        public async Task CarregarColunasFiltro()
+        {
+            var repositorio = new SqlClient.Repositorio(IdServidor);
+            var colunasFiltro = await repositorio.SelecionarColunasFiltroAsync(Database, Schema, Nome);
+            ColunasFiltro = TodasColunas.Where(p => colunasFiltro.Contains(p.Nome)).ToList();
+        }
+
+        public string MontarWhere(Dictionary<string, object> valores)
+        {
+            var retorno = string.Empty;
+
+            foreach (var coluna in ColunasFiltro)
+            {
+                if (valores.Keys.Contains(coluna.Nome) && valores[coluna.Nome].ToString() != string.Empty)
+                {
+                    if (retorno != string.Empty)
+                    {
+                        retorno += " AND ";
+                    }
+
+                    string valorParametro = valores[coluna.Nome].ToString();
+
+                    if (coluna.Tipo.ToUpper() == "DATE" ||
+                            coluna.Tipo.ToUpper() == "DATETIME" ||
+                            coluna.Tipo.ToUpper() == "DATETIME2")
+                    {
+                        valorParametro = "'" + AjustarFormatoData(valorParametro) + "'";
+                    }
+                    else if (coluna.Tipo.ToUpper() == "TIME" || coluna.Tipo.ToUpper() == "TIMESPAN")
+                    {
+                        valorParametro = "'" + valorParametro + "'";
+                    }
+                    else if (coluna.Tipo.ToUpper() == "VARCHAR" ||
+                        coluna.Tipo.ToUpper() == "CHAR" ||
+                        coluna.Tipo.ToUpper() == "NVARCHAR" ||
+                        coluna.Tipo.ToUpper() == "NCHAR")
+                    {
+                        valorParametro = "'%" + valorParametro + "%'";
+                    }
+                    else if (coluna.Tipo.ToUpper() == "BIT" && (valorParametro.ToUpper() == bool.TrueString.ToUpper() || valorParametro.ToUpper() == "ON"))
+                    {
+                        valorParametro = "1";
+                    }
+
+                    /* Concatena o parâmetro */
+                    if (coluna.Tipo.ToUpper() == "VARCHAR" ||
+                        coluna.Tipo.ToUpper() == "CHAR" ||
+                        coluna.Tipo.ToUpper() == "NVARCHAR" ||
+                        coluna.Tipo.ToUpper() == "NCHAR")
+                    {
+                        retorno += $"AL0.{coluna.Nome} LIKE {valorParametro}";
+                    }
+                    else
+                    {
+                        retorno += $"AL0.{coluna.Nome} = {valorParametro}";
+                    }
+                }
+            }
+
+            return retorno;
         }
     }
 }

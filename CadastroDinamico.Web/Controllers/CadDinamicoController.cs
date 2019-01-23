@@ -35,6 +35,26 @@ namespace CadastroDinamico.Web.Controllers
             return View(dadosTabela);
         }
 
+        public async Task<IActionResult> Filtrar(IFormCollection formCollection)
+        {
+            var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+            var lista = formCollection.ToList();
+            var valores = new Dictionary<string, string>();
+
+            foreach (var item in lista)
+            {
+                valores.Add(item.Key, item.Value[0]);
+            }
+
+            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
+            await tabela.CarregarAsync();
+
+            await tabela.PesquisarRegistrosAsync(valores);
+            ViewBag.Title = valores["Tabela"];
+
+            return View("Index", tabela);
+        }
+
         public async Task<IActionResult> TelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;

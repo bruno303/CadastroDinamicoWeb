@@ -25,26 +25,115 @@
             <h2>@ViewBag.Title</h2>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>Filtro 1</label>
-                <input id="selDatabases" class="form-control" />
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>Filtro 2</label>
-                <input id="selDatabases" class="form-control" />
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label>Filtro 3</label>
-                <input id="selDatabases" class="form-control" />
-            </div>
-        </div>
-    </div>
+
+    @if (Model.ColunasFiltro.Count > 0)
+    {
+        var cont = 0;
+        <form method="post" action="/CadDinamico/Filtrar/">
+            @Html.AntiForgeryToken()
+
+            @Html.Hidden("Database", Model.Database, new { @class = "form-control" })
+            @Html.Hidden("Schema", Model.Schema, new { @class = "form-control" })
+            @Html.Hidden("Tabela", Model.Nome, new { @class = "form-control" })
+
+            @while (cont < Model.ColunasFiltro.Count)
+            {
+                <div class="row">
+
+                    @for (int col = 0; col < 3; col++)
+                    {
+                        if (cont >= Model.ColunasFiltro.Count)
+                        {
+                            break;
+                        }
+
+                        var nome = Model.ColunasFiltro[cont].NomeInput;
+
+                        <div class="col-md-4">
+
+                            @if (Model.ColunasFiltro[cont].IsChaveEstrangeira)
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <select name="@nome" id="@nome" class="form-control">
+                                        <option value="0">-- SELECIONE --</option>
+                                        @for (int cont2 = 0; cont2 < Model.ColunasFiltro[cont].ListaSelecao.Count; cont2++)
+                                        {
+                                            <option value="@Model.ColunasFiltro[cont].ListaSelecao[cont2].ChavePrimaria">@Model.ColunasFiltro[cont].ListaSelecao[cont2].Descricao</option>
+                                        }
+                                    </select>
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "INT" ||
+                                        Model.ColunasFiltro[cont].Tipo.ToUpper() == "BIGINT" ||
+                                        Model.ColunasFiltro[cont].Tipo.ToUpper() == "SMALLINT" ||
+                                        Model.ColunasFiltro[cont].Tipo.ToUpper() == "TINYINT")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="number" class="form-control" id="@nome" name="@nome" />
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "DECIMAL" ||
+                                        Model.ColunasFiltro[cont].Tipo.ToUpper() == "FLOAT")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="number" class="form-control" id="@nome" step=".01" name="@nome" />
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "DATETIME")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="datetime" class="form-control inputData" id="@nome" name="@nome" />
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "DATE")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="date" class="form-control" id="@nome" name="@nome" />
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "TIME")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="time" class="form-control" id="@nome" name="@nome" />
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "BIT")
+                            {
+                                <div class="form-group">
+                                    <div class="checkbox" style="margin-bottom: 15px;">
+                                        <input type="checkbox" id="@nome" name="@nome">
+                                        <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "VARCHAR" ||
+                                Model.ColunasFiltro[cont].Tipo.ToUpper() == "NVARCHAR" ||
+                                Model.ColunasFiltro[cont].Tipo.ToUpper() == "CHAR" ||
+                                Model.ColunasFiltro[cont].Tipo.ToUpper() == "NCHAR")
+                            {
+                                <div class="form-group">
+                                    <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
+                                    <input type="text" class="form-control" id="@nome" name="@nome" value="">
+                                </div>
+                            }
+                        </div>
+
+                        cont++;
+                    }
+
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary m-botom" title="Salvar"><i class="fas fa-search"></i></button>
+        </form>
+    }
+
     <div class="row">
         <div class="col-md-12">
             <div class="table-responsive">
@@ -100,4 +189,17 @@
 
 @section Scripts {
     <script type="text/javascript" src="~/bundles/js/useDatatable.min.js"></script>
+        <script src="~/bundles/js/cadDinamicoAlteracao.min.js"></script>
+
+    <script>
+        $(document).ready(() => {
+            $(".inputData").inputmask("datetime", {
+                mask: "1/2/y h:s",
+                placeholder: "dd/mm/yyyy hh:mm",
+                alias: "datetime",
+                separator: "/",
+                hourFormat: "24"
+            });
+        });
+    </script>
 }

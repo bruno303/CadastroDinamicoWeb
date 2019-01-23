@@ -157,7 +157,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
                 }
-                colunas = await SelecionarColunasVisiveisAsync(id);
+                colunas = await SelecionarColunasFiltroAsync(id);
             }
             catch (Exception)
             {
@@ -454,7 +454,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public async Task<MatrizValores> RetornarValoresAmostraDadosAsync(string query)
+        public async Task<MatrizValores> RetornarValoresQueryAsync(string query)
         {
             DataTable dados = null;
             var conexao = new Conexao(await RetornarConnectionStringAsync());
