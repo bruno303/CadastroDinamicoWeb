@@ -1,5 +1,4 @@
-﻿using CadastroDinamico.Dominio;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Repo = CadastroDinamico.Repositorio.SqlClient.Repositorio;
 
@@ -21,7 +20,7 @@ namespace CadastroDinamico.Core
                 if (!await repositorio.ExisteDatabaseAsync(DATABASE_NAME))
                 {
                     await repositorio.CriarDatabaseAsync(DATABASE_NAME);
-                    repositorio.CriarObjetosAplicacaoAsync(DATABASE_NAME, ANSI_NULL_COMMAND, QUOTED_IDENTIFIER_COMMAND);
+                    await repositorio.CriarObjetosAplicacaoAsync(DATABASE_NAME, ANSI_NULL_COMMAND, QUOTED_IDENTIFIER_COMMAND);
                 }
             }
             catch(Exception ex)

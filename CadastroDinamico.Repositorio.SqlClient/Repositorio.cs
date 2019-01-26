@@ -19,10 +19,10 @@ namespace CadastroDinamico.Repositorio.SqlClient
             IdServidor = idServidor;
         }
 
-        public async void CriarObjetosAplicacaoAsync(string database, string ansiNullCmd, string quotedIdentCmd)
+        public async Task CriarObjetosAplicacaoAsync(string database, string ansiNullCmd, string quotedIdentCmd)
         {
             var arquivo = new Utils.Arquivo();
-            var conexao = new Conexao(await RetornarConnectionStringAsync());
+            var conexao = new Conexao(await RetornarConnectionStringAsync(DATABASE_NAME));
 
             var files = await arquivo.RetornarArquivosDiretorioAsync(Dir.GetParent(Dir.GetCurrentDirectory()) + "\\" + "CadastroDinamico.Dominio\\Scripts");
             foreach (var file in files)
@@ -61,9 +61,9 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
 
-        public async Task<string> RetornarConnectionStringAsync()
+        public async Task<string> RetornarConnectionStringAsync(string database = null)
         {
-            return await ConfiguradorBancoDados.RetornarConnectionStringAsync(IdServidor);
+            return await ConfiguradorBancoDados.RetornarConnectionStringAsync(IdServidor, database);
         }
 
         public async Task<List<Database>> RetornarDatabasesAsync()

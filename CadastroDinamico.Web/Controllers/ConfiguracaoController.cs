@@ -14,12 +14,16 @@ namespace CadastroDinamico.Web.Controllers
     [CadDinamicoAuth]
     public class ConfiguracaoController : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor");
             if ((!idServidor.HasValue) || idServidor.Value == 0)
             {
                 return RedirectToAction("CustomError", "Home", new { mensagem = "O ID do servidor não foi definido!" });
+            }
+            else
+            {
+                await new ConfiguradorCadastroDinamico().CriarDatabaseAplicacaoAsync(idServidor.Value);
             }
             return View();
         }
