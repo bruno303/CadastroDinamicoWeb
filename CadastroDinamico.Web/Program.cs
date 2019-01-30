@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using System.IO;
 using System.Net;
 
 namespace CadastroDinamico.Web
@@ -13,10 +14,9 @@ namespace CadastroDinamico.Web
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .UseKestrel(options =>
-                {
-                    options.Listen(IPAddress.Loopback, 3000);
-                });
+                .UseStartup<Startup>();
+                //.UseUrls("http://*:3000");
+                //.UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
+                //.UseContentRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
     }
 }
