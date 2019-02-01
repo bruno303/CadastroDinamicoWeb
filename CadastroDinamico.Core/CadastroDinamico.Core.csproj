@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CadastroDinamico.Dominio\CadastroDinamico.Dominio.csproj" />
     <ProjectReference Include="..\CadastroDinamico.Repositorio.SqlClient\CadastroDinamico.Repositorio.SqlClient.csproj" />
     <ProjectReference Include="..\CadastroDinamico.Repositorio.SQLite\CadastroDinamico.Repositorio.SQLite.csproj" />

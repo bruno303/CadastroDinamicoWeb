@@ -150,9 +150,18 @@
                         }
                     }
                 }
-
-                <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>
-                <a role="button" class="btn btn-outline-secondary" href="@ViewBag.UrlBack" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>
+                        <a role="button" class="btn btn-outline-secondary" href="@ViewBag.UrlBack" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        @{ string parametrosDownload = string.Format("/CadDinamico/DownloadHtmlTelaDinamicaAlteracao?database={0}&schema={1}&tabela={2}&pk={3}", Model.Database, Model.Schema, Model.Nome, Model.GetPk()); }
+                        <a role="button" class="btn btn-outline-secondary m-botom" href="@parametrosDownload" title="Download Html">
+                            <i class="fa fa-download" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

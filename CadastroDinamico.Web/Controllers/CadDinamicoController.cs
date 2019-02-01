@@ -99,30 +99,64 @@ namespace CadastroDinamico.Web.Controllers
             return View("TelaDinamicaInclusao", dadosTabela);
         }
 
-        #region Teste
-        [HttpGet]
-        public async Task<FileResult> DownloadHtml(string database, string schema, string tabela)
+        #region Downloads
+        public async Task<FileResult> DownloadHtmlIndex(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
             var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
             await tabelaCore.CarregarAsync();
             await tabelaCore.CarregarValoresAsync(true);
+
+            ViewBag.Title = tabela;
             var html = await this.RenderViewAsync("Index", tabelaCore);
-            var path = string.Format("DownloadFiles\\{0}\\", DateTime.Now.ToString("yyyy-MM-dd_HHmmss"));
-            var fileName = $"{database}_{schema}_{tabela}.html";
 
-            System.IO.Directory.CreateDirectory(path);
+            var filename = $"{database}_{schema}_{tabela}_index";
 
-            await new Utils.Arquivo().EscreverEmArquivoAsync(path + fileName, html, false);
+            var bytes = await new DownloadArquivoCore().RetornarArquivoDownload(tabela, schema, database, html, filename);
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(path + fileName);
-
-            System.IO.File.Delete(path + fileName);
-            System.IO.Directory.Delete(path, true);
-
-            return File(bytes, "multipart/form-data", fileName);
+            return File(bytes, "multipart/form-data", $"{filename}.zip");
         }
 
+        public async Task<FileResult> DownloadHtmlTelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
+        {
+            var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+
+            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
+            await tabelaCore.CarregarAsync();
+            await tabelaCore.CarregarValoresAsync(false, pk);
+            ViewBag.Valores = tabelaCore.Valores;
+            ViewBag.Alterar = true;
+
+            ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
+
+            var html = await this.RenderViewAsync("TelaDinamica", tabelaCore);
+            var filename = $"{database}_{schema}_{tabela}_dinamic";
+
+            var bytes = await new DownloadArquivoCore().RetornarArquivoDownload(tabela, schema, database, html, filename);
+
+            return File(bytes, "multipart/form-data", $"{filename}.zip");
+        }
+
+        public async Task<FileResult> DownloadHtmlTelaDinamicaInclusao(string database, string schema, string tabela)
+        {
+            var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+
+            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
+            await tabelaCore.CarregarAsync();
+            ViewBag.Alterar = false;
+
+            ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
+
+            var html = await this.RenderViewAsync("TelaDinamicaInclusao", tabelaCore);
+            var filename = $"{database}_{schema}_{tabela}_dinamic";
+
+            var bytes = await new DownloadArquivoCore().RetornarArquivoDownload(tabela, schema, database, html, filename);
+
+            return File(bytes, "multipart/form-data", $"{filename}.zip");
+        }
+        #endregion
+
+        #region Salvar Informacoes
         public async Task<IActionResult> GravarItem(IFormCollection formCollection)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
