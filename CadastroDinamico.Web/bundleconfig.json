@@ -34,6 +34,17 @@
     "sourceMap": false
   },
   {
+    "outputFileName": "wwwroot/bundles/js/cadDinamicoIndex.min.js",
+    "inputFiles": [
+      "wwwroot/js/cadDinamicoIndex.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
     "outputFileName": "wwwroot/bundles/js/site.min.js",
     "inputFiles": [
       "wwwroot/lib/jquery/dist/jquery.js",

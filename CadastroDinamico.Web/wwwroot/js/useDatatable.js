@@ -1,5 +1,5 @@
-﻿$(document).ready(() => {
-    $('.datatable').DataTable({
+﻿function createDatatable(selector) {
+    return $(selector).DataTable({
         language: {
             "decimal": ",",
             "emptyTable": "Nenhum registro disponível",
@@ -26,4 +26,4 @@
         },
         searching: false
     });
-});
+}

@@ -14,25 +14,48 @@ namespace CadastroDinamico.Web.Controllers
     [CadDinamicoAuth]
     public class CadDinamicoController : Controller
     {
+        public readonly ITabelaCore _tabelaCore;
+
+        public CadDinamicoController(ITabelaCore core)
+        {
+            _tabelaCore = core;
+        }
+
         public async Task<IActionResult> Index(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
             ViewBag.Title = tabela;
 
             var repositorio = new Repo.Repositorio(idServidor);
-            TabelaCore dadosTabela = null;
 
             try
             {
-                dadosTabela = new TabelaCore(tabela, schema, database, idServidor);
-                await dadosTabela.CarregarAsync();
-                await dadosTabela.CarregarValoresAsync(true);
+                await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+                await _tabelaCore.CarregarValoresAsync(true);
             }
             catch (Exception)
             {
                 throw;
             }
-            return View(dadosTabela);
+            return View(_tabelaCore);
+        }
+
+        public async Task<IActionResult> ConsultarDadosIndex(string database, string schema, string tabela)
+        {
+            var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+            var repositorio = new Repo.Repositorio(idServidor);
+
+            try
+            {
+                ViewBag.Title = tabela;
+                await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+                await _tabelaCore.CarregarValoresAsync(true);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return Json(_tabelaCore);
         }
 
         public async Task<IActionResult> Filtrar(IFormCollection formCollection)
@@ -46,27 +69,24 @@ namespace CadastroDinamico.Web.Controllers
                 valores.Add(item.Key, item.Value[0]);
             }
 
-            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
-            await tabela.CarregarAsync();
+            await _tabelaCore.CarregarAsync(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
 
-            await tabela.PesquisarRegistrosAsync(valores);
+            await _tabelaCore.PesquisarRegistrosAsync(valores);
             ViewBag.Title = valores["Tabela"];
 
-            return View("Index", tabela);
+            return Json(_tabelaCore);
         }
 
         public async Task<IActionResult> TelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
             var repositorio = new Repo.Repositorio(idServidor);
-            TabelaCore dadosTabela = null;
 
             try
             {
-                dadosTabela = new TabelaCore(tabela, schema, database, idServidor);
-                await dadosTabela.CarregarAsync();
-                await dadosTabela.CarregarValoresAsync(false, pk);
-                ViewBag.Valores = dadosTabela.Valores;
+                await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+                await _tabelaCore.CarregarValoresAsync(false, pk);
+                ViewBag.Valores = _tabelaCore.Valores;
                 ViewBag.Alterar = true;
 
                 ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
@@ -75,19 +95,17 @@ namespace CadastroDinamico.Web.Controllers
             {
                 throw;
             }
-            return View("TelaDinamica", dadosTabela);
+            return View("TelaDinamica", _tabelaCore);
         }
 
         public async Task<IActionResult> Novo(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
             var repositorio = new Repo.Repositorio(idServidor);
-            TabelaCore dadosTabela = null;
 
             try
             {
-                dadosTabela = new TabelaCore(tabela, schema, database, idServidor);
-                await dadosTabela.CarregarAsync();
+                await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
                 ViewBag.Alterar = false;
 
                 ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
@@ -96,19 +114,18 @@ namespace CadastroDinamico.Web.Controllers
             {
                 throw;
             }
-            return View("TelaDinamicaInclusao", dadosTabela);
+            return View("TelaDinamicaInclusao", _tabelaCore);
         }
 
         #region Downloads
         public async Task<FileResult> DownloadHtmlIndex(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
-            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
-            await tabelaCore.CarregarAsync();
-            await tabelaCore.CarregarValoresAsync(true);
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+            await _tabelaCore.CarregarValoresAsync(true);
 
             ViewBag.Title = tabela;
-            var html = await this.RenderViewAsync("Index", tabelaCore);
+            var html = await this.RenderViewAsync("Index", _tabelaCore);
 
             var filename = $"{database}_{schema}_{tabela}_index";
 
@@ -120,16 +137,14 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<FileResult> DownloadHtmlTelaDinamicaAlteracao(string database, string schema, string tabela, string pk)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
-
-            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
-            await tabelaCore.CarregarAsync();
-            await tabelaCore.CarregarValoresAsync(false, pk);
-            ViewBag.Valores = tabelaCore.Valores;
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+            await _tabelaCore.CarregarValoresAsync(false, pk);
+            ViewBag.Valores = _tabelaCore.Valores;
             ViewBag.Alterar = true;
 
             ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
 
-            var html = await this.RenderViewAsync("TelaDinamica", tabelaCore);
+            var html = await this.RenderViewAsync("TelaDinamica", _tabelaCore);
             var filename = $"{database}_{schema}_{tabela}_dinamic";
 
             var bytes = await new DownloadArquivoCore().RetornarArquivoDownload(tabela, schema, database, html, filename);
@@ -140,14 +155,12 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<FileResult> DownloadHtmlTelaDinamicaInclusao(string database, string schema, string tabela)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
-
-            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
-            await tabelaCore.CarregarAsync();
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
             ViewBag.Alterar = false;
 
             ViewBag.UrlBack = $"/CadDinamico/Index?database={database}&schema={schema}&tabela={tabela}";
 
-            var html = await this.RenderViewAsync("TelaDinamicaInclusao", tabelaCore);
+            var html = await this.RenderViewAsync("TelaDinamicaInclusao", _tabelaCore);
             var filename = $"{database}_{schema}_{tabela}_dinamic";
 
             var bytes = await new DownloadArquivoCore().RetornarArquivoDownload(tabela, schema, database, html, filename);
@@ -167,9 +180,8 @@ namespace CadastroDinamico.Web.Controllers
             {
                 valores.Add(item.Key, item.Value[0]);
             }
-            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
-            await tabela.CarregarAsync();
-            await tabela.AlterarRegistroAsync(valores);
+            await _tabelaCore.CarregarAsync(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
+            await _tabelaCore.AlterarRegistroAsync(valores);
 
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }
@@ -184,9 +196,8 @@ namespace CadastroDinamico.Web.Controllers
             {
                 valores.Add(item.Key, item.Value[0]);
             }
-            var tabela = new TabelaCore(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
-            await tabela.CarregarAsync();
-            await tabela.InserirRegistroAsync(valores);
+            await _tabelaCore.CarregarAsync(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
+            await _tabelaCore.InserirRegistroAsync(valores);
 
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }

@@ -528,5 +528,28 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
             return retorno;
         }
+
+        public async Task<object[,]> RetornarValoresMultilinha(string query)
+        {
+            DataTable dados = null;
+            var conexao = new Conexao(await RetornarConnectionStringAsync());
+
+            dados = await conexao.RetornarDadosAsync(query);
+
+            var retorno = new object[dados.Rows.Count, dados.Columns.Count];
+
+            if (dados?.Rows?.Count > 0)
+            {
+                for (int lin = 0; lin < dados.Rows.Count; lin++)
+                {
+                    for (int col = 0; col < dados.Columns.Count; col++)
+                    {
+                        retorno[lin, col] = dados.Rows[lin][col].ToString();
+                    }
+                }
+            }
+
+            return retorno;
+        }
     }
 }

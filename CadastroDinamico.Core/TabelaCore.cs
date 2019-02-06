@@ -7,7 +7,7 @@ using SqlClient = CadastroDinamico.Repositorio.SqlClient;
 
 namespace CadastroDinamico.Core
 {
-    public class TabelaCore
+    public class TabelaCore : ITabelaCore
     {
         public string Nome { get; set; }
         public string Database { get; set; }
@@ -25,25 +25,19 @@ namespace CadastroDinamico.Core
         public int IdServidor { get; set; }
         public bool IsIdentity { get; set; }
         public List<Coluna> ColunasFiltro { get; set; }
+        public object[,] ConsultaDados { get; set; }
 
         private List<string> camposExibir;
         private string pkAlteracao;
 
-        #region Construtor
-
-        public TabelaCore(string tabela, string schema, string database, int idServidor)
+        public async Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor)
         {
             Nome = tabela;
             Schema = schema;
             Database = database;
             IdServidor = idServidor;
             Valores = new List<object>();
-        }
 
-        #endregion
-
-        public async Task<string> CarregarAsync()
-        {
             string retorno = string.Empty;
             SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
 
@@ -64,7 +58,11 @@ namespace CadastroDinamico.Core
 
             try
             {
+                Valores = null;
+                ValoresMultilinha = null;
+                ConsultaDados = null;
                 pkAlteracao = string.Empty;
+
                 Colunas = await repositorio.RetornarColunasAsync(Database, Schema, Nome);
                 TodasColunas = new List<Coluna>();
                 TodasColunas.AddRange(Colunas);
@@ -215,6 +213,7 @@ namespace CadastroDinamico.Core
                 if (amostra)
                 {
                     ValoresMultilinha = await repositorio.RetornarValoresQueryAsync(query);
+                    ConsultaDados = await repositorio.RetornarValoresMultilinha(query);
                 }
                 else
                 {
@@ -236,6 +235,7 @@ namespace CadastroDinamico.Core
             try
             {
                 ValoresMultilinha = await repositorio.RetornarValoresQueryAsync(query);
+                ConsultaDados = await repositorio.RetornarValoresMultilinha(query);
             }
             catch (Exception)
             {
@@ -647,7 +647,8 @@ namespace CadastroDinamico.Core
         {
             var repositorio = new SqlClient.Repositorio(IdServidor);
             var colunasFiltro = await repositorio.SelecionarColunasFiltroAsync(Database, Schema, Nome);
-            ColunasFiltro = TodasColunas.Where(p => colunasFiltro.Contains(p.Nome)).ToList();
+            colunasFiltro.ForEach(col => col = col.ToUpper());
+            ColunasFiltro = TodasColunas.Where(p => colunasFiltro.Contains(p.Nome.ToUpper())).ToList();
         }
 
         public string MontarWhere(Dictionary<string, object> valores)

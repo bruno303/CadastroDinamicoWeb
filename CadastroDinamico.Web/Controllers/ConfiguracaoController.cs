@@ -14,6 +14,13 @@ namespace CadastroDinamico.Web.Controllers
     [CadDinamicoAuth]
     public class ConfiguracaoController : Controller
     {
+        public readonly ITabelaCore _tabelaCore;
+
+        public ConfiguracaoController(ITabelaCore core)
+        {
+            _tabelaCore = core;
+        }
+
         public async Task<IActionResult> Index()
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor");
@@ -82,21 +89,20 @@ namespace CadastroDinamico.Web.Controllers
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
             List<ColunaNomeViewModel> colunas = new List<ColunaNomeViewModel>();
-            var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
-            await tabelaCore.CarregarAsync();
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
 
-            var colVisiveisList = await tabelaCore.RetornarColunasVisiveisAsync();
-            var colFiltroList = await tabelaCore.RetornarColunasFiltroAsync();
-            var id = await tabelaCore.RetornarIdConfiguracaoTabelaAsync();
+            var colVisiveisList = await _tabelaCore.RetornarColunasVisiveisAsync();
+            var colFiltroList = await _tabelaCore.RetornarColunasFiltroAsync();
+            var id = await _tabelaCore.RetornarIdConfiguracaoTabelaAsync();
 
-            for (int contador = 0; contador < tabelaCore.TodasColunas.Count; contador++)
+            for (int contador = 0; contador < _tabelaCore.TodasColunas.Count; contador++)
             {
                 colunas.Add(new ColunaNomeViewModel()
                 {
-                    Name = tabelaCore.TodasColunas[contador].Nome,
-                    Visivel = (id <= 0) || (colVisiveisList?.Contains(tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false),
-                    PodeOcultar = tabelaCore.TodasColunas[contador].AceitaNull,
-                    Filtro = (id <= 0) || (colFiltroList?.Contains(tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false)
+                    Name = _tabelaCore.TodasColunas[contador].Nome,
+                    Visivel = (id <= 0) || (colVisiveisList?.Contains(_tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false),
+                    PodeOcultar = _tabelaCore.TodasColunas[contador].AceitaNull,
+                    Filtro = (id <= 0) || (colFiltroList?.Contains(_tabelaCore.TodasColunas[contador].Nome.ToUpper()) ?? false)
                 });
             }
 
@@ -118,10 +124,9 @@ namespace CadastroDinamico.Web.Controllers
                     var schema = dadosBanco.Split(";")[1];
                     var tabela = dadosBanco.Split(";")[2];
 
-                    var tabelaCore = new TabelaCore(tabela, schema, database, idServidor);
-                    await tabelaCore.CarregarAsync();
+                    await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
 
-                    await tabelaCore.SalvarConfiguracoesColunasAsync(colunas.Split(";").ToList(), dadosfk?.Split(";").ToList(), dadosfiltro?.Split(";").ToList());
+                    await _tabelaCore.SalvarConfiguracoesColunasAsync(colunas.Split(";").ToList(), dadosfk?.Split(";").ToList(), dadosfiltro?.Split(";").ToList());
                 }
                 else
                 {
