@@ -129,11 +129,11 @@
             }
                 
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 col-sm-6 col-lg-6">
                     <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>
                     <a role="button" class="btn btn-outline-secondary" href="@ViewBag.UrlBack" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
                 </div>
-                <div class="col-md-6 text-right">
+                <div class="col-md-6 col-sm-6 col-lg-6 text-right">
                     @{ string parametrosDownload = string.Format("/CadDinamico/DownloadHtmlTelaDinamicaInclusao?database={0}&schema={1}&tabela={2}", Model.Database, Model.Schema, Model.Nome); }
                     <a role="button" class="btn btn-outline-secondary m-botom" href="@parametrosDownload" title="Download Html">
                         <i class="fa fa-download" aria-hidden="true"></i>

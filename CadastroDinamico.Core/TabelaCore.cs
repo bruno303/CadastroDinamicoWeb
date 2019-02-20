@@ -9,6 +9,7 @@ namespace CadastroDinamico.Core
 {
     public class TabelaCore : ITabelaCore, IDisposable
     {
+        #region Propriedades
         public string Nome { get; set; }
         public string Database { get; set; }
         public string Schema { get; set; }
@@ -26,10 +27,14 @@ namespace CadastroDinamico.Core
         public bool IsIdentity { get; set; }
         public List<Coluna> ColunasFiltro { get; set; }
         public object[,] ConsultaDados { get; set; }
+        #endregion
 
+        #region Variaveis
         private List<string> camposExibir;
         private string pkAlteracao;
+        #endregion
 
+        #region Metodos
         public async Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor, bool carregarFks = true)
         {
             Nome = tabela;
@@ -383,7 +388,7 @@ namespace CadastroDinamico.Core
             return query;
         }
 
-        public string RetornarUpdate(string pk, Dictionary<string, object> valores)
+        public string RetornarUpdateAsync(string pk, Dictionary<string, object> valores)
         {
             string query = string.Empty;
 
@@ -444,7 +449,7 @@ namespace CadastroDinamico.Core
             return query;
         }
 
-        public async Task<string> RetornarInsert(Dictionary<string, object> valores)
+        public async Task<string> RetornarInsertAsync(Dictionary<string, object> valores)
         {
             string query = string.Empty;
             var repositorio = new SqlClient.Repositorio(IdServidor);
@@ -563,7 +568,7 @@ namespace CadastroDinamico.Core
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
                 pk = valores["pk"];
 
-                var query = RetornarUpdate(pk, valoresTratados);
+                var query = RetornarUpdateAsync(pk, valoresTratados);
                 retorno = await repositorio.AlterarValoresAsync(query);
             }
             catch(Exception ex)
@@ -584,7 +589,7 @@ namespace CadastroDinamico.Core
 
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
 
-                var query = await RetornarInsert(valoresTratados);
+                var query = await RetornarInsertAsync(valoresTratados);
                 retorno = await repositorio.AlterarValoresAsync(query);
             }
             catch (Exception ex)
@@ -755,6 +760,7 @@ namespace CadastroDinamico.Core
 
             return retorno;
         }
+        #endregion
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
