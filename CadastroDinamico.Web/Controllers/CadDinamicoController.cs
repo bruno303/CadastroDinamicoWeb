@@ -202,5 +202,11 @@ namespace CadastroDinamico.Web.Controllers
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            _tabelaCore.Dispose();
+            base.Dispose(disposing);
+        }
     }
 }

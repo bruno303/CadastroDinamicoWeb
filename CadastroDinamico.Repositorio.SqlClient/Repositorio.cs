@@ -416,7 +416,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
         public async Task<List<Coluna>> RetornarColunasChavePrimariaTabelaAsync(string tabela, string schema, string database)
         {
             List<Coluna> colChavePrimaria = null;
-            colChavePrimaria = (await RetornarColunasAsync(database, schema, tabela)).Where(p => p.IsChavePrimaria).ToList();
+            colChavePrimaria = (await RetornarColunasAsync(database, schema, tabela)).Where(p => p.IsChavePrimaria && !p.IsChaveEstrangeira).ToList();
             return colChavePrimaria;
         }
 

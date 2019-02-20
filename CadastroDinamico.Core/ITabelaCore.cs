@@ -1,10 +1,11 @@
 ﻿using CadastroDinamico.Dominio;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CadastroDinamico.Core
 {
-    public interface ITabelaCore
+    public interface ITabelaCore : IDisposable
     {
         string Nome { get; set; }
         string Database { get; set; }
@@ -24,7 +25,7 @@ namespace CadastroDinamico.Core
         List<Coluna> ColunasFiltro { get; set; }
         object[,] ConsultaDados { get; set; }
 
-        Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor);
+        Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor, bool carregarFks = true);
         string MontarUrlChavesPrimarias(int linha);
         Task CarregarValoresAsync(bool amostra = false, string pk = "");
         Task CarregarValoresAsync(string query);

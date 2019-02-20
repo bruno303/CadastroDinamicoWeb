@@ -15,7 +15,9 @@ namespace CadastroDinamico.Dominio
         public bool IsChavePrimaria { get; set; }
         public bool IsChaveEstrangeira { get; set; }
         public string TabelaReferenciada { get; set; }
+        public string TabelaReferenciadaChavePrimaria { get; set; }
         public string ColunaReferenciada { get; set; }
+        public string ColunaReferenciadaChavePrimaria { get; set; }
         public List<TabelaEstrangeira> ListaSelecao { get; set; }
         public string NomeInput { get; set; }
         public bool IsIdentity { get; set; }

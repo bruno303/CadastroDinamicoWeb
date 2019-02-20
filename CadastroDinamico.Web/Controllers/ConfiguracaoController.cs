@@ -148,6 +148,8 @@ namespace CadastroDinamico.Web.Controllers
             var consulta = (await repositorio.RetornarColunasAsync(database, schema, tabela)).Where(p => p.IsChaveEstrangeira).ToList();
             List<ColunaChaveEstrangeiraViewModel> colunas = new List<ColunaChaveEstrangeiraViewModel>();
 
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+
             var id = await repositorio.SelecionarIdConfiguracaoTabelaAsync(database, schema, tabela);
             string colDescricao = string.Empty;
 
@@ -162,7 +164,8 @@ namespace CadastroDinamico.Web.Controllers
             {
                 for (int contador = 0; contador < consulta.Count; contador++)
                 {
-                    var colunasTabelaReferenciada = (await repositorio.RetornarColunasAsync(database, schema, consulta[contador].TabelaReferenciada)).Select(p => p.Nome).ToList();
+                    var tabelaReferenciadaChavePrimaria = _tabelaCore.Colunas.Where(c => c.Nome == consulta[contador].Nome).FirstOrDefault()?.TabelaReferenciadaChavePrimaria;
+                    var colunasTabelaReferenciada = (await repositorio.RetornarColunasAsync(database, schema, tabelaReferenciadaChavePrimaria)).Select(p => p.Nome).ToList();
                     if (colsList != null)
                     {
                         if (colsList.Where(p => p.Split(":")[0].Equals(consulta[contador].Nome)).FirstOrDefault() != null)
@@ -186,6 +189,12 @@ namespace CadastroDinamico.Web.Controllers
             }
 
             return Json(colunas);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _tabelaCore.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

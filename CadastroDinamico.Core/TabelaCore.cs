@@ -7,7 +7,7 @@ using SqlClient = CadastroDinamico.Repositorio.SqlClient;
 
 namespace CadastroDinamico.Core
 {
-    public class TabelaCore : ITabelaCore
+    public class TabelaCore : ITabelaCore, IDisposable
     {
         public string Nome { get; set; }
         public string Database { get; set; }
@@ -30,7 +30,7 @@ namespace CadastroDinamico.Core
         private List<string> camposExibir;
         private string pkAlteracao;
 
-        public async Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor)
+        public async Task<string> CarregarAsync(string tabela, string schema, string database, int idServidor, bool carregarFks = true)
         {
             Nome = tabela;
             Schema = schema;
@@ -73,7 +73,10 @@ namespace CadastroDinamico.Core
                 ChavesPrimarias = await repositorio.RetornarColunasChavePrimariaTabelaAsync(Nome, Schema, Database);
                 RemoverColunasIgnoradas();
                 QuantidadeCampos = Colunas.Count;
-                await CarregarColunasChaveEstrangeiraAsync();
+                if (carregarFks)
+                {
+                    await CarregarColunasChaveEstrangeiraAsync();
+                }
                 IsIdentity = Colunas.FirstOrDefault().IsIdentity;
                 await CarregarColunasFiltro();
             }
@@ -100,8 +103,55 @@ namespace CadastroDinamico.Core
             {
                 if (Colunas[cont].IsChaveEstrangeira)
                 {
-                    Colunas[cont].ListaSelecao = await RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciada);
+                    Colunas[cont].TabelaReferenciadaChavePrimaria = await RetornarTabelaChaveEstrangeira(Colunas[cont]);
+                    Colunas[cont].ColunaReferenciadaChavePrimaria = await RetornarColunaChaveEstrangeira(Colunas[cont]);
+
+                    Colunas[cont].ListaSelecao = await RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciadaChavePrimaria);
                 }
+            }
+        }
+
+        private async Task<string> RetornarTabelaChaveEstrangeira(Coluna coluna)
+        {
+            ITabelaCore tabelaCore = new TabelaCore();
+            await tabelaCore.CarregarAsync(coluna.TabelaReferenciada, Schema, Database, IdServidor, false);
+            var colunaTabelaPai = tabelaCore.Colunas.Where(c => c.Nome == coluna.Nome).FirstOrDefault();
+            if (colunaTabelaPai != null)
+            {
+                if (!colunaTabelaPai.IsChaveEstrangeira)
+                {
+                    return coluna.TabelaReferenciada;
+                }
+                else
+                {
+                    return await RetornarTabelaChaveEstrangeira(colunaTabelaPai);
+                }
+            }
+            else
+            {
+                throw new Exception($"Column {coluna.Nome} not found in parent table {coluna.TabelaReferenciada}.");
+            }
+        }
+
+        private async Task<string> RetornarColunaChaveEstrangeira(Coluna coluna)
+        {
+            ITabelaCore tabelaCore = new TabelaCore();
+            await tabelaCore.CarregarAsync(coluna.TabelaReferenciada, Schema, Database, IdServidor, false);
+            var colunaTabelaPai = tabelaCore.Colunas.Where(c => c.Nome == coluna.Nome).FirstOrDefault();
+            if (colunaTabelaPai != null)
+            {
+                if (!colunaTabelaPai.IsChaveEstrangeira)
+                {
+                    return coluna.ColunaReferenciada;
+                }
+                else
+                {
+                    return await RetornarColunaChaveEstrangeira(colunaTabelaPai);
+                }
+            }
+            else
+            {
+                throw new Exception($"Column {coluna.Nome} not found in parent table {coluna.TabelaReferenciada}.");
             }
         }
 
@@ -319,8 +369,8 @@ namespace CadastroDinamico.Core
                     if (Colunas[i].IsChaveEstrangeira)
                     {
                         countTabelasEstrangeiras++;
-                        query += $" LEFT JOIN {Database}.{Schema}.{Colunas[i].TabelaReferenciada} {prefixoAlias + countTabelasEstrangeiras.ToString()} ";
-                        query += $"     WITH(NOLOCK) ON {prefixoAlias + countTabelasEstrangeiras.ToString()}.{Colunas[i].ColunaReferenciada} = {prefixoAlias + "0"}.{Colunas[i].Nome}";
+                        query += $" LEFT JOIN {Database}.{Schema}.{Colunas[i].TabelaReferenciadaChavePrimaria} {prefixoAlias + countTabelasEstrangeiras.ToString()} ";
+                        query += $"     WITH(NOLOCK) ON {prefixoAlias + countTabelasEstrangeiras.ToString()}.{Colunas[i].ColunaReferenciadaChavePrimaria} = {prefixoAlias + "0"}.{Colunas[i].Nome}";
                     }
                 }
             }
@@ -551,7 +601,7 @@ namespace CadastroDinamico.Core
             try
             {
                 SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
-                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores, true);
+                AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(TodasColunas, valores, true);
 
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
 
@@ -705,5 +755,48 @@ namespace CadastroDinamico.Core
 
             return retorno;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    Colunas = null;
+                    ColunasFiltro = null;
+                    Valores = null;
+                    ValoresMultilinha = null;
+                    ChavesPrimarias = null;
+                    ColunasFiltro = null;
+                    ConsultaDados = null;
+                    GC.Collect();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~TabelaCore() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
