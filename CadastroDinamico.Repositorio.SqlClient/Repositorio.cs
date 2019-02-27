@@ -512,6 +512,23 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return string.Empty;
         }
 
+        public async Task<string[]> DeletarRegistroAsync(string query)
+        {
+            string[] retorno = { string.Empty, string.Empty, string.Empty };
+            try
+            {
+                var conexao = new Conexao(await RetornarConnectionStringAsync());
+                await conexao.ExecutarQueryAsync(query);
+            }
+            catch (Exception ex)
+            {
+                retorno[0] = "Erro ao deletar o registro.";
+                retorno[1] = ex.Message;
+                retorno[2] = query;
+            }
+            return retorno;
+        }
+
         public async Task<int> RetornarProximaChavePrimaria(string database, string schema, string tabela, string colPk)
         {
             var retorno = 1;

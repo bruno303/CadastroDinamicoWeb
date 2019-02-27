@@ -20,9 +20,9 @@ namespace CadastroDinamico.Web.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult CustomError(string mensagem)
+        public IActionResult CustomError(CustomErrorViewModel error)
         {
-            return View(new CustomErrorViewModel { IdErro = 0, Mensagem = mensagem });
+            return View(error);
         }
     }
 }

@@ -22,9 +22,26 @@
     </p>
 }
 
-<p>
-    <strong>Mensagem: </strong> @Model.Mensagem
-</p>
+@if (Model.ShowTitulo)
+{
+    <p>
+        <strong>Título: </strong> @Model.Titulo
+    </p>
+}
+
+@if (Model.ShowMessage)
+{
+    <p>
+        <strong>Mensagem: </strong> @Model.Mensagem
+    </p>
+}
+
+@if (Model.ShowComandoExecutado)
+{
+    <p>
+        <strong>ComandoExecutado: </strong> @Model.ComandoExecutado
+    </p>
+}
 
 <div class="row">
     <div class="col-md-12">

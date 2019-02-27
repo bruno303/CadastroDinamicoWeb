@@ -151,6 +151,13 @@ namespace CadastroDinamico.Core
         /// <param name="valores">Dictionary: Valores do registro a ser considerado para montar o Where.</param>
         /// <returns>String: Instrução Where do registro.</returns>
         string MontarWhere(Dictionary<string, object> valores);
+
+        /// <summary>
+        /// Tenta deletar um registro da tabela.
+        /// </summary>
+        /// <param name="pk">Chave primária do registro.</param>
+        /// <returns></returns>
+        Task<string[]> DeletarRegistroAsync(int idServidor, string pk);
         #endregion
     }
 }

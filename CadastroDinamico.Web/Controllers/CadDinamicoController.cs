@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using CadastroDinamico.Web.Extension;
 using System.Threading.Tasks;
 using CadastroDinamico.Web.Filters;
+using CadastroDinamico.Web.Models;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -184,6 +185,23 @@ namespace CadastroDinamico.Web.Controllers
             await _tabelaCore.AlterarRegistroAsync(valores);
 
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
+        }
+
+        public async Task<IActionResult> DeletarItem(string database, string schema, string tabela, string pk)
+        {
+            var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+
+            await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
+            var result = await _tabelaCore.DeletarRegistroAsync(idServidor, pk);
+            if ((!string.IsNullOrEmpty(result[0])) || (!string.IsNullOrEmpty(result[1])) || (!string.IsNullOrEmpty(result[2])))
+            {
+                return RedirectToAction("CustomError", "Home", new CustomErrorViewModel()
+                {
+                    IdErro = 0, Titulo = result[0], Mensagem = result[1], ComandoExecutado = result[2]
+                });
+            }
+
+            return RedirectToAction("Index", new { database, schema, tabela });
         }
 
         public async Task<IActionResult> GravarNovoItem(IFormCollection formCollection)

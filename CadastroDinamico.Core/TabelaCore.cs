@@ -449,6 +449,17 @@ namespace CadastroDinamico.Core
             return query;
         }
 
+        private string RetornarDelete(string pk)
+        {
+            var where = MontarWhereChavesPrimarias(pk);
+            var comando = $"DELETE AL0 FROM {Database}.{Schema}.{Nome} AL0 ";
+            if (!string.IsNullOrWhiteSpace(where))
+            {
+                comando += $" WHERE {where}";
+            }
+            return comando;
+        }
+
         public async Task<string> RetornarInsertAsync(Dictionary<string, object> valores)
         {
             string query = string.Empty;
@@ -758,6 +769,25 @@ namespace CadastroDinamico.Core
                 }
             }
 
+            return retorno;
+        }
+
+        public async Task<string[]> DeletarRegistroAsync(int idServidor, string pk)
+        {
+            var repositorio = new SqlClient.Repositorio(idServidor);
+            string[] retorno = { string.Empty, string.Empty, string.Empty };
+            var query = RetornarDelete(pk);
+
+            try
+            {
+                retorno = await repositorio.DeletarRegistroAsync(query);
+            }
+            catch(Exception ex)
+            {
+                retorno[0] = "Erro ao deletar o registro.";
+                retorno[1] = ex.Message;
+                retorno[2] = query;
+            }
             return retorno;
         }
         #endregion

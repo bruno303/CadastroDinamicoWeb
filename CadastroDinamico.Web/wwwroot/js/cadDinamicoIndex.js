@@ -22,6 +22,7 @@ function requestData() {
 function mountTable(data) {
     let innerHTML = '';
     let url = '';
+    let urlDelete = '';
     const linesCount = data.consultaDados.length;
     const colsCount = data.consultaDados.length > 0 ? data.consultaDados[0].length : 0;
 
@@ -36,7 +37,8 @@ function mountTable(data) {
             }
         }
         url = `/CadDinamico/TelaDinamicaAlteracao?database=${data.database}&schema=${data.schema}&tabela=${data.nome}&pk=${data.consultaDados[lin][0].toString()}`;
-        innerHTML += `<td><a role="button" class="btn btn-success btn-sm" href="${url}" title="Editar"><i class="fas fa-edit"></i></a><a role="button" class="btn btn-danger btn-sm" href="${url}" title="Excluir"><i class="fas fa-trash-alt"></i></a></td>`;
+        urlDelete = `/CadDinamico/DeletarItem?database=${data.database}&schema=${data.schema}&tabela=${data.nome}&pk=${data.consultaDados[lin][0].toString()}`;
+        innerHTML += `<td><a role="button" class="btn btn-success btn-sm" href="${url}" title="Editar"><i class="fas fa-edit"></i></a><a role="button" class="btn btn-danger btn-sm" href="${urlDelete}" title="Excluir"><i class="fas fa-trash-alt"></i></a></td>`;
         innerHTML += '</tr>';
     }
     updateDatatable(innerHTML);

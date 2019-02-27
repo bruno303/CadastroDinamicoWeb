@@ -26,7 +26,13 @@ namespace CadastroDinamico.Web.Controllers
             var idServidor = HttpContext.Session.GetInt32("idServidor");
             if ((!idServidor.HasValue) || idServidor.Value == 0)
             {
-                return RedirectToAction("CustomError", "Home", new { mensagem = "O ID do servidor não foi definido!" });
+                return RedirectToAction("CustomError", "Home", new CustomErrorViewModel()
+                {
+                    IdErro = 0,
+                    Titulo = string.Empty,
+                    Mensagem = "O ID do servidor não foi definido!",
+                    ComandoExecutado = string.Empty
+                });
             }
             else
             {
