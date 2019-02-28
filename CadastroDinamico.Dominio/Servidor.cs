@@ -7,5 +7,7 @@
         public string Instancia { get; set; }
         public string Usuario { get; set; }
         public string Senha { get; set; }
+        public bool GravarLog { get; set; }
+        public bool UsarTransacao { get; set; }
     }
 }

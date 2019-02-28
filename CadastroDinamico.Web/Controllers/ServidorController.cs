@@ -25,7 +25,9 @@ namespace CadastroDinamico.Web.Controllers
                     Hostname = servidor.Hostname,
                     Instancia = servidor.Instancia,
                     Usuario = servidor.Usuario,
-                    Senha = servidor.Senha
+                    Senha = servidor.Senha,
+                    GravarLog = servidor.GravarLog,
+                    UsarTransacao = servidor.UsarTransacao
                 });
             }
 
@@ -42,9 +44,10 @@ namespace CadastroDinamico.Web.Controllers
                 Hostname = servidor.Hostname,
                 Instancia = servidor.Instancia,
                 Usuario = servidor.Usuario,
-                Senha = servidor.Senha
+                Senha = servidor.Senha,
+                GravarLog = servidor.GravarLog,
+                UsarTransacao = servidor.UsarTransacao
             };
-
 
             return View(servidorViewModel);
         }
@@ -58,7 +61,9 @@ namespace CadastroDinamico.Web.Controllers
                 Hostname = servidorViewModel.Hostname,
                 Instancia = servidorViewModel.Instancia,
                 Usuario = servidorViewModel.Usuario,
-                Senha = servidorViewModel.Senha
+                Senha = servidorViewModel.Senha,
+                GravarLog = servidorViewModel.GravarLog,
+                UsarTransacao = servidorViewModel.UsarTransacao
             };
 
             await sqliteCore.GravarServidorAsync(servidor);
@@ -75,6 +80,8 @@ namespace CadastroDinamico.Web.Controllers
             var servidorViewModel = new ServidorViewModel();
 
             servidorViewModel.IdServidor = 0;
+            servidorViewModel.GravarLog = true;
+            servidorViewModel.UsarTransacao = true;
 
             return View("Editar", servidorViewModel);
         }

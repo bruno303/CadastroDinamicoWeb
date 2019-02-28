@@ -37,7 +37,9 @@ namespace CadastroDinamico.Repositorio.SQLite
             query.AppendLine("    HOSTNAME TEXT,");
             query.AppendLine("    INSTANCIA TEXT,");
             query.AppendLine("    USUARIO TEXT,");
-            query.AppendLine("    SENHA TEXT");
+            query.AppendLine("    SENHA TEXT,");
+            query.AppendLine("    GRAVAR_LOG INTEGER,");
+            query.AppendLine("    USAR_TRANSACAO INTEGER");
             query.AppendLine(");");
 
             await conexao.ExecutarQueryAsync(query.ToString());
@@ -88,10 +90,15 @@ namespace CadastroDinamico.Repositorio.SQLite
             await conexao.ExecutarQueryAsync(query);
         }
 
-        public async Task<List<Usuario>> RetornarUsuariosAsync()
+        public async Task<List<Usuario>> RetornarUsuariosAsync(int idUsuario)
         {
             var conexao = new Conexao();
-            var query = " SELECT ID_USUARIO, NOME, LOGIN, SENHA FROM USUARIO; ";
+            var query = " SELECT ID_USUARIO, NOME, LOGIN, SENHA FROM USUARIO ";
+            if (idUsuario != 1)
+            {
+                query += " WHERE ID_USUARIO <> 1 ";
+            }
+            query += ";";
             var retorno = new List<Usuario>();
 
             await CriarBaseSQLiteAsync();
@@ -137,7 +144,7 @@ namespace CadastroDinamico.Repositorio.SQLite
         public async Task<List<Servidor>> RetornarServidoresAsync()
         {
             var conexao = new Conexao();
-            var query = " SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA FROM SERVIDOR; ";
+            var query = " SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA, GRAVAR_LOG, USAR_TRANSACAO FROM SERVIDOR; ";
             var retorno = new List<Servidor>();
 
             await CriarBaseSQLiteAsync();
@@ -153,7 +160,9 @@ namespace CadastroDinamico.Repositorio.SQLite
                         Hostname = dados.Rows[i][1].ToString(),
                         Instancia = dados.Rows[i][2].ToString(),
                         Usuario = dados.Rows[i][3].ToString(),
-                        Senha = dados.Rows[i][4].ToString()
+                        Senha = dados.Rows[i][4].ToString(),
+                        GravarLog = Convert.ToBoolean(dados.Rows[i][5]),
+                        UsarTransacao = Convert.ToBoolean(dados.Rows[i][6])
                     });
                 }
             }
@@ -164,7 +173,7 @@ namespace CadastroDinamico.Repositorio.SQLite
         public async Task<Servidor> RetornarServidorAsync(int idServidor)
         {
             var conexao = new Conexao();
-            var query = $" SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA FROM SERVIDOR WHERE ID_SERVIDOR = {idServidor.ToString()}; ";
+            var query = $" SELECT ID_SERVIDOR, HOSTNAME, INSTANCIA, USUARIO, SENHA, GRAVAR_LOG, USAR_TRANSACAO FROM SERVIDOR WHERE ID_SERVIDOR = {idServidor.ToString()}; ";
             var retorno = new Servidor();
 
             await CriarBaseSQLiteAsync();
@@ -177,6 +186,8 @@ namespace CadastroDinamico.Repositorio.SQLite
                 retorno.Instancia = dados.Rows[0][2].ToString();
                 retorno.Usuario = dados.Rows[0][3].ToString();
                 retorno.Senha = dados.Rows[0][4].ToString();
+                retorno.GravarLog = Convert.ToBoolean(dados.Rows[0][5]);
+                retorno.UsarTransacao = Convert.ToBoolean(dados.Rows[0][6]);
             }
 
             return retorno;
@@ -185,8 +196,11 @@ namespace CadastroDinamico.Repositorio.SQLite
         public async Task CriarServidorAsync(Servidor servidor)
         {
             var conexao = new Conexao();
-            var query = "INSERT INTO SERVIDOR(HOSTNAME, INSTANCIA, USUARIO, SENHA) VALUES ";
-            query += $"  ('{servidor.Hostname}', '{servidor.Instancia}', '{servidor.Usuario}', '{servidor.Senha}');";
+            var gravarLog = servidor.GravarLog ? "1" : "0";
+            var usarTransacao = servidor.UsarTransacao ? "1" : "0";
+
+            var query = "INSERT INTO SERVIDOR(HOSTNAME, INSTANCIA, USUARIO, SENHA, GRAVAR_LOG, USAR_TRANSACAO) VALUES ";
+            query += $"  ('{servidor.Hostname}', '{servidor.Instancia}', '{servidor.Usuario}', '{servidor.Senha}', {gravarLog}, {usarTransacao});";
 
             await conexao.ExecutarQueryAsync(query);
             
@@ -198,7 +212,9 @@ namespace CadastroDinamico.Repositorio.SQLite
             var query = $"UPDATE SERVIDOR SET HOSTNAME = '{servidor.Hostname}', " +
                 $"INSTANCIA = '{servidor.Instancia}', " +
                 $"USUARIO = '{servidor.Usuario}', " +
-                $"SENHA = '{servidor.Senha}' " +
+                $"SENHA = '{servidor.Senha}', " +
+                "GRAVAR_LOG = '" + (servidor.GravarLog ? "1" : "0") + "', " +
+                "USAR_TRANSACAO = '" + (servidor.UsarTransacao ? "1" : "0") + "' " +
                 $"WHERE ID_SERVIDOR = {servidor.IdServidor.ToString()}; ";
 
             await conexao.ExecutarQueryAsync(query);

@@ -5,6 +5,7 @@ using CadastroDinamico.Web.Models;
 using System.Collections.Generic;
 using CadastroDinamico.Dominio;
 using CadastroDinamico.Web.Filters;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroDinamico.Web.Controllers
 {
@@ -13,7 +14,8 @@ namespace CadastroDinamico.Web.Controllers
     {
         public async Task<IActionResult> Index()
         {
-            var usuarios = await new Repositorio.SQLite.Repositorio().RetornarUsuariosAsync();
+            var idUsuario = HttpContext.Session.GetInt32("idUsuario");
+            var usuarios = await new Repositorio.SQLite.Repositorio().RetornarUsuariosAsync(idUsuario.Value);
             var usuariosViewModel = new List<UsuarioViewModel>();
 
             foreach (var usuario in usuarios)

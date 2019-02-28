@@ -26,6 +26,12 @@
                             Usuário
                         </th>
                         <th>
+                            Gravar Log
+                        </th>
+                        <th>
+                            Usar Transação
+                        </th>
+                        <th>
                             Ações
                         </th>
                     </tr>
@@ -33,6 +39,9 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
+                        var usarTransacao = item.UsarTransacao ? "checked" : "";
+                        var gravarLog = item.GravarLog ? "checked" : "";
+
                         <tr>
                             <td>
                                 @item.Hostname
@@ -42,6 +51,12 @@
                             </td>
                             <td>
                                 @item.Usuario
+                            </td>
+                            <td>
+                                <input type="checkbox" @gravarLog onclick='this.checked = !this.checked'/>
+                            </td>
+                            <td>
+                                <input type="checkbox" @usarTransacao onclick='this.checked = !this.checked'/>
                             </td>
                             <td>
                                 <a href=@("/Servidor/Usar/" + item.IdServidor.ToString()) role="button" class="btn btn-dark btn-sm" title="Usar">
@@ -55,7 +70,7 @@
                                 </a>
                             </td>
                         </tr>
-                    }
+                }
                 </tbody>
             </table>
         </div>

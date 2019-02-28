@@ -40,6 +40,22 @@
                 <br />
                 @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
             </div>
+
+            <div class="form-group">
+                <div class="checkbox" style="margin-bottom: 15px;">
+                    @Html.CheckBoxFor(m => m.GravarLog)
+                    @Html.LabelFor(m => m.GravarLog)
+                    @Html.ValidationMessageFor(m => m.GravarLog)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox" style="margin-bottom: 15px;">
+                    @Html.CheckBoxFor(m => m.UsarTransacao)
+                    @Html.LabelFor(m => m.UsarTransacao)
+                    @Html.ValidationMessageFor(m => m.UsarTransacao)
+                </div>
+            </div>
             <br />
 
             <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>

@@ -18,5 +18,11 @@ namespace CadastroDinamico.Web.Models
 
         [Required(ErrorMessage = "Campo Senha obrigatório")]
         public string Senha { get; set; }
+
+        [Display(Name = "Gravar Log")]
+        public bool GravarLog { get; set; }
+
+        [Display(Name = "Usar Transação")]
+        public bool UsarTransacao { get; set; }
     }
 }
