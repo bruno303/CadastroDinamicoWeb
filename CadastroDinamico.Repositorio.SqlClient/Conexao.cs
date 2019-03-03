@@ -8,15 +8,23 @@ namespace CadastroDinamico.Repositorio.SqlClient
     internal class Conexao
     {
         private readonly string _connectionString;
+        public bool UsarTransacao { get; set; }
 
         public Conexao()
         {
             _connectionString = string.Empty;
+            Init();
         }
 
         public Conexao(string connectionString)
         {
             _connectionString = connectionString;
+            Init();
+        }
+
+        private void Init()
+        {
+            UsarTransacao = false;
         }
 
         #region Retornar dados
@@ -73,7 +81,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
         #endregion
 
         #region Executar query
-        public async Task<int> ExecutarQueryAsync(string query, bool usarTransacao = false)
+        public async Task<int> ExecutarQueryAsyncNoTransaction(string query)
         {
             int linhasAfetadas = 0;
             try
@@ -81,7 +89,29 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
                 {
                     await conexao.OpenAsync();
-                    if (usarTransacao)
+                    using (SqlCommand command = new SqlCommand(query, conexao))
+                    {
+                        command.CommandType = CommandType.Text;
+                        linhasAfetadas = await command.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return linhasAfetadas;
+        }
+
+        public async Task<int> ExecutarQueryAsync(string query)
+        {
+            int linhasAfetadas = 0;
+            try
+            {
+                using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
+                {
+                    await conexao.OpenAsync();
+                    if (UsarTransacao)
                     {
                         using (var transacao = conexao.BeginTransaction(IsolationLevel.ReadCommitted))
                         {
@@ -133,7 +163,5 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
         #endregion
-
-
     }
 }

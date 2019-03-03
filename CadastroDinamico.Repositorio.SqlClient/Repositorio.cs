@@ -353,7 +353,11 @@ namespace CadastroDinamico.Repositorio.SqlClient
         public async Task<string> SalvarConfiguracoesTabelaAsync(int id, string database, string schema, string table)
         {
             var retorno = string.Empty;
-            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync())
+            {
+                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
+                GravarLog = await ConfiguradorBancoDados.RetornarGravaLog(IdServidor)
+            };
 
             try
             {
@@ -371,7 +375,11 @@ namespace CadastroDinamico.Repositorio.SqlClient
         public async Task SalvarConfiguracaoColunaAsync(int idConfiguracaoTabelaColuna, int idConfiguracaoTabela, string coluna,
             bool visivel, string colunaDescricao, bool filtro)
         {
-            Conexao conexao = new Conexao(await RetornarConnectionStringAsync());
+            Conexao conexao = new Conexao(await RetornarConnectionStringAsync())
+            {
+                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
+                GravarLog = await ConfiguradorBancoDados.RetornarGravaLog(IdServidor)
+            };
 
             try
             {
@@ -498,11 +506,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public async Task<string> AlterarValoresAsync(string query)
+        #region Alteração / Deleção
+        public async Task<string> AlterarIncluirValoresAsync(string query)
         {
             try
             {
-                var conexao = new Conexao(await RetornarConnectionStringAsync());
+                var conexao = new Conexao(await RetornarConnectionStringAsync())
+                {
+                    UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor)
+                };
+                await GravarLogExecucao(query);
                 var result = await conexao.ExecutarQueryAsync(query);
             }
             catch(Exception ex)
@@ -517,7 +530,11 @@ namespace CadastroDinamico.Repositorio.SqlClient
             string[] retorno = { string.Empty, string.Empty, string.Empty };
             try
             {
-                var conexao = new Conexao(await RetornarConnectionStringAsync());
+                var conexao = new Conexao(await RetornarConnectionStringAsync())
+                {
+                    UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
+                };
+                await GravarLogExecucao(query);
                 await conexao.ExecutarQueryAsync(query);
             }
             catch (Exception ex)
@@ -528,6 +545,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
             return retorno;
         }
+        #endregion
 
         public async Task<int> RetornarProximaChavePrimaria(string database, string schema, string tabela, string colPk)
         {
@@ -567,6 +585,16 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
 
             return retorno;
+        }
+
+        private async Task GravarLogExecucao(string metodo, string query)
+        {
+            if (await ConfiguradorBancoDados.RetornarGravaLog(IdServidor))
+            {
+                var queryLog = $"INSERT INTO LOG (METODO, COMANDO) VALUES ('{metodo}', '{query.Replace("'", "\\'")}')";
+                var conexao = new Conexao(await RetornarConnectionStringAsync(DATABASE_NAME));
+                //await conexao.ExecutarQueryAsyncNoTransaction(queryLog);
+            }
         }
     }
 }

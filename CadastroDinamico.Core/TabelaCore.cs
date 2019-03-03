@@ -580,7 +580,7 @@ namespace CadastroDinamico.Core
                 pk = valores["pk"];
 
                 var query = RetornarUpdateAsync(pk, valoresTratados);
-                retorno = await repositorio.AlterarValoresAsync(query);
+                retorno = await repositorio.AlterarIncluirValoresAsync(query);
             }
             catch(Exception ex)
             {
@@ -601,7 +601,7 @@ namespace CadastroDinamico.Core
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
 
                 var query = await RetornarInsertAsync(valoresTratados);
-                retorno = await repositorio.AlterarValoresAsync(query);
+                retorno = await repositorio.AlterarIncluirValoresAsync(query);
             }
             catch (Exception ex)
             {
