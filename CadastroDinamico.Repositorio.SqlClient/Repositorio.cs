@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Dir = System.IO.Directory;
 
@@ -290,8 +292,12 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 if (dados.Rows.Count > 0)
                 {
                     id = Convert.ToInt32(dados.Rows[0][0].ToString());
+                    colunas = await SelecionarColunasVisiveisAsync(id);
                 }
-                colunas = await SelecionarColunasVisiveisAsync(id);
+                else
+                {
+                    colunas = (await RetornarColunasAsync(database, schema, tabela)).Select(c => c.Nome).ToList();
+                }
             }
             catch (Exception)
             {
@@ -355,8 +361,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             var retorno = string.Empty;
             Conexao conexao = new Conexao(await RetornarConnectionStringAsync())
             {
-                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
-                GravarLog = await ConfiguradorBancoDados.RetornarGravaLog(IdServidor)
+                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor)
             };
 
             try
@@ -377,8 +382,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
         {
             Conexao conexao = new Conexao(await RetornarConnectionStringAsync())
             {
-                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
-                GravarLog = await ConfiguradorBancoDados.RetornarGravaLog(IdServidor)
+                UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor)
             };
 
             try
@@ -507,7 +511,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
         }
 
         #region Alteração / Deleção
-        public async Task<string> AlterarIncluirValoresAsync(string query)
+        public async Task<string> AlterarIncluirValoresAsync(string query, DadosLog dadosLog)
         {
             try
             {
@@ -515,7 +519,8 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 {
                     UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor)
                 };
-                await GravarLogExecucao(query);
+
+                await GravarLogExecucao(dadosLog);
                 var result = await conexao.ExecutarQueryAsync(query);
             }
             catch(Exception ex)
@@ -525,7 +530,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return string.Empty;
         }
 
-        public async Task<string[]> DeletarRegistroAsync(string query)
+        public async Task<string[]> DeletarRegistroAsync(string query, DadosLog dadosLog)
         {
             string[] retorno = { string.Empty, string.Empty, string.Empty };
             try
@@ -534,7 +539,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 {
                     UsarTransacao = await ConfiguradorBancoDados.RetornarUsaTransacao(IdServidor),
                 };
-                await GravarLogExecucao(query);
+                await GravarLogExecucao(dadosLog);
                 await conexao.ExecutarQueryAsync(query);
             }
             catch (Exception ex)
@@ -587,13 +592,21 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        private async Task GravarLogExecucao(string metodo, string query)
+        private async Task GravarLogExecucao(DadosLog dados)
         {
             if (await ConfiguradorBancoDados.RetornarGravaLog(IdServidor))
             {
-                var queryLog = $"INSERT INTO LOG (METODO, COMANDO) VALUES ('{metodo}', '{query.Replace("'", "\\'")}')";
+                var queryLog = new StringBuilder();
                 var conexao = new Conexao(await RetornarConnectionStringAsync(DATABASE_NAME));
-                //await conexao.ExecutarQueryAsyncNoTransaction(queryLog);
+
+                queryLog.Append("EXEC PRC_INS_LOG ");
+                queryLog.Append($" @STR_BANCO_DADOS = '{dados.Database}', ");
+                queryLog.Append($" @STR_ESQUEMA = '{dados.Schema}', ");
+                queryLog.Append($" @STR_TABELA = '{dados.Tabela}', ");
+                queryLog.Append($" @STR_USUARIO = '{dados.Usuario}', ");
+                queryLog.Append($" @STR_METODO = '{dados.Metodo}', ");
+                queryLog.Append($" @STR_QUERY = '{dados.Query.Replace("'", "''")}'");
+                await conexao.ExecutarQueryAsyncNoTransaction(queryLog.ToString());
             }
         }
     }

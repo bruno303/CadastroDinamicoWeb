@@ -30,6 +30,7 @@
                 for (int cont = 0; cont < Model.QuantidadeCampos; cont++)
                 {
                     var nome = Model.Colunas[cont].NomeInput;
+                    var valor = string.Empty;
 
                     if (Model.Colunas[cont].IsChaveEstrangeira)
                     {
@@ -76,17 +77,19 @@
                     else if (Model.Colunas[cont].Tipo.ToUpper() == "DECIMAL" ||
                                 Model.Colunas[cont].Tipo.ToUpper() == "FLOAT")
                     {
+                        valor = ViewBag.Valores[cont].ToString();//.Replace(".", "").Replace(",", ".");
+
                         <div class="form-group">
                             <label for="@nome">@Model.Colunas[cont].Nome</label>
                             @if (Model.Colunas[cont].IsChavePrimaria && ViewBag.Alterar)
                             {
                                 <input type="number" class="form-control" id="@nome" step=".01"
-                                        name="@nome" value="@ViewBag.Valores[cont].ToString().Replace(".", "").Replace(",", ".")" disabled="disabled" />
+                                        name="@nome" value="@valor" disabled="disabled" />
                             }
                             else
                             {
                                 <input type="number" class="form-control" id="@nome" step=".01"
-                                        name="@nome" value="@ViewBag.Valores[cont].ToString().Replace(".", "").Replace(",", ".")" />
+                                        name="@nome" value="@valor" />
                             }
                         </div>
                     }

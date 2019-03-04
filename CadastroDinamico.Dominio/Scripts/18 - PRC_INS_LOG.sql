@@ -1,0 +1,41 @@
+-- =============================================
+-- Author:		Bruno Oliveira
+-- Create date: 03/03/2019
+-- Description:	Insere log das operacoes realizadas
+-- =============================================
+CREATE PROCEDURE [dbo].[PRC_INS_LOG]
+	@STR_BANCO_DADOS				VARCHAR(120),
+	@STR_ESQUEMA					VARCHAR(120),
+	@STR_TABELA					    VARCHAR(120),
+    @STR_USUARIO                    VARCHAR(500),
+    @STR_METODO                     VARCHAR(200),
+    @STR_QUERY                      VARCHAR(MAX)
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	DECLARE @ID_TABELA INT = 0,
+			@ID_ESQUEMA INT = 0,
+			@ID_BANCO_DADOS INT = 0;
+
+	/* BANCO_DADOS */
+	SELECT @ID_BANCO_DADOS = ID_BANCO_DADOS
+	FROM BANCO_DADOS WITH(NOLOCK)
+	WHERE NOME = @STR_BANCO_DADOS;
+
+	/* ESQUEMA */
+	SELECT @ID_ESQUEMA = ID_ESQUEMA
+	FROM ESQUEMA WITH(NOLOCK)
+	WHERE NOME = @STR_ESQUEMA;
+
+	/* TABELA */
+	SELECT @ID_TABELA = ID_TABELA
+	FROM TABELA WITH(NOLOCK)
+	WHERE NOME = @STR_TABELA;
+
+    /* INSERT LOG */
+    INSERT INTO [dbo].[LOG] (ID_BANCO_DADOS, ID_ESQUEMA, ID_TABELA, USUARIO, METODO, QUERY_EXECUTADA)
+    VALUES (@ID_BANCO_DADOS, @ID_ESQUEMA, @ID_TABELA, @STR_USUARIO, @STR_METODO, @STR_QUERY);
+
+	SET NOCOUNT OFF;
+END

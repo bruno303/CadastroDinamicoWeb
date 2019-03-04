@@ -174,6 +174,7 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<IActionResult> GravarItem(IFormCollection formCollection)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+            var idUsuario = HttpContext.Session.GetInt32("idUsuario").Value;
             var lista = formCollection.ToList();
             var valores = new Dictionary<string, string>();
 
@@ -182,7 +183,7 @@ namespace CadastroDinamico.Web.Controllers
                 valores.Add(item.Key, item.Value[0]);
             }
             await _tabelaCore.CarregarAsync(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
-            await _tabelaCore.AlterarRegistroAsync(valores);
+            await _tabelaCore.AlterarRegistroAsync(valores, idUsuario);
 
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }
@@ -190,9 +191,10 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<IActionResult> DeletarItem(string database, string schema, string tabela, string pk)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+            var idUsuario = HttpContext.Session.GetInt32("idUsuario").Value;
 
             await _tabelaCore.CarregarAsync(tabela, schema, database, idServidor);
-            var result = await _tabelaCore.DeletarRegistroAsync(idServidor, pk);
+            var result = await _tabelaCore.DeletarRegistroAsync(idServidor, pk, idUsuario);
             if ((!string.IsNullOrEmpty(result[0])) || (!string.IsNullOrEmpty(result[1])) || (!string.IsNullOrEmpty(result[2])))
             {
                 return RedirectToAction("CustomError", "Home", new CustomErrorViewModel()
@@ -207,6 +209,7 @@ namespace CadastroDinamico.Web.Controllers
         public async Task<IActionResult> GravarNovoItem(IFormCollection formCollection)
         {
             var idServidor = HttpContext.Session.GetInt32("idServidor").Value;
+            var idUsuario = HttpContext.Session.GetInt32("idUsuario").Value;
             var lista = formCollection.ToList();
             var valores = new Dictionary<string, string>();
 
@@ -215,7 +218,7 @@ namespace CadastroDinamico.Web.Controllers
                 valores.Add(item.Key, item.Value[0]);
             }
             await _tabelaCore.CarregarAsync(valores["Tabela"], valores["Schema"], valores["Database"], idServidor);
-            await _tabelaCore.InserirRegistroAsync(valores);
+            await _tabelaCore.InserirRegistroAsync(valores, idUsuario);
 
             return RedirectToAction("Index", new { database = valores["Database"], schema = valores["Schema"], tabela = valores["Tabela"] });
         }

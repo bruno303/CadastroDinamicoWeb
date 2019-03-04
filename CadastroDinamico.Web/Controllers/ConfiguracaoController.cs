@@ -170,7 +170,7 @@ namespace CadastroDinamico.Web.Controllers
             {
                 for (int contador = 0; contador < consulta.Count; contador++)
                 {
-                    var tabelaReferenciadaChavePrimaria = _tabelaCore.Colunas.Where(c => c.Nome == consulta[contador].Nome).FirstOrDefault()?.TabelaReferenciadaChavePrimaria;
+                    var tabelaReferenciadaChavePrimaria = _tabelaCore.TodasColunas.Where(c => c.Nome == consulta[contador].Nome).FirstOrDefault()?.TabelaReferenciadaChavePrimaria;
                     var colunasTabelaReferenciada = (await repositorio.RetornarColunasAsync(database, schema, tabelaReferenciadaChavePrimaria)).Select(p => p.Nome).ToList();
                     if (colsList != null)
                     {

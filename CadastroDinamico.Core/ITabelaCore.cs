@@ -96,14 +96,14 @@ namespace CadastroDinamico.Core
         /// </summary>
         /// <param name="valores">Dictionary: Lista de valores do registro a ser alterado.</param>
         /// <returns>String: Resultado da operação.</returns>
-        Task<string> AlterarRegistroAsync(Dictionary<string, string> valores);
+        Task<string> AlterarRegistroAsync(Dictionary<string, string> valores, int idUsuario);
 
         /// <summary>
         /// Insere um novo registro na tabela.
         /// </summary>
         /// <param name="valores">Dictionary: Lista de valores do registro a ser inserido.</param>
         /// <returns>String: Resultado da operação.</returns>
-        Task<string> InserirRegistroAsync(Dictionary<string, string> valores);
+        Task<string> InserirRegistroAsync(Dictionary<string, string> valores, int idUsuario);
 
         /// <summary>
         /// Pesquisa determinado(s) registro(s) na tabela.
@@ -157,7 +157,7 @@ namespace CadastroDinamico.Core
         /// </summary>
         /// <param name="pk">Chave primária do registro.</param>
         /// <returns></returns>
-        Task<string[]> DeletarRegistroAsync(int idServidor, string pk);
+        Task<string[]> DeletarRegistroAsync(int idServidor, string pk, int idUsuario);
         #endregion
     }
 }

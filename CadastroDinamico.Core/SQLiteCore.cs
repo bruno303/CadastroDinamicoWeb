@@ -104,5 +104,12 @@ namespace CadastroDinamico.Core
             var servidor = await repositorioSQLite.RetornarServidoresAsync();
             return servidor.FirstOrDefault().IdServidor;
         }
+
+        public async Task<string> RetornarNomeUsuario(int idUsuario)
+        {
+            var repositorioSQLite = new Repositorio.SQLite.Repositorio();
+            var usuario = await repositorioSQLite.RetornarUsuarioAsync(idUsuario);
+            return usuario.Nome;
+        }
     }
 }

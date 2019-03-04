@@ -1,6 +1,7 @@
 ﻿using CadastroDinamico.Dominio;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SqlClient = CadastroDinamico.Repositorio.SqlClient;
@@ -104,14 +105,14 @@ namespace CadastroDinamico.Core
         private async Task CarregarColunasChaveEstrangeiraAsync()
         {
             /* Carrega SelectList para os campos de chave estrangeira */
-            for (int cont = 0; cont < Colunas.Count; cont++)
+            for (int cont = 0; cont < TodasColunas.Count; cont++)
             {
-                if (Colunas[cont].IsChaveEstrangeira)
+                if (TodasColunas[cont].IsChaveEstrangeira)
                 {
-                    Colunas[cont].TabelaReferenciadaChavePrimaria = await RetornarTabelaChaveEstrangeira(Colunas[cont]);
-                    Colunas[cont].ColunaReferenciadaChavePrimaria = await RetornarColunaChaveEstrangeira(Colunas[cont]);
+                    TodasColunas[cont].TabelaReferenciadaChavePrimaria = await RetornarTabelaChaveEstrangeira(TodasColunas[cont]);
+                    TodasColunas[cont].ColunaReferenciadaChavePrimaria = await RetornarColunaChaveEstrangeira(TodasColunas[cont]);
 
-                    Colunas[cont].ListaSelecao = await RetornarListaTabelaEstrangeira(Colunas[cont].TabelaReferenciadaChavePrimaria);
+                    TodasColunas[cont].ListaSelecao = await RetornarListaTabelaEstrangeira(TodasColunas[cont].TabelaReferenciadaChavePrimaria);
                 }
             }
         }
@@ -195,6 +196,10 @@ namespace CadastroDinamico.Core
             {
                 chavePrimaria = (await repositorio.RetornarColunasChavePrimariaTabelaAsync(tabela, Schema, Database))[0].Nome;
                 descricao = await repositorio.SelecionarDescricaoChaveEstrangeiraConfiguracaoTabelaAsync(Database, Schema, Nome, chavePrimaria);
+                if (string.IsNullOrEmpty(descricao))
+                {
+                    descricao = (await repositorio.RetornarColunasAsync(Database, Schema, tabela)).FirstOrDefault().Nome;
+                }
                 itens = await repositorio.SelectTabelaAsync(chavePrimaria, descricao, tabela, Schema, Database);
             }
             catch (Exception)
@@ -567,12 +572,14 @@ namespace CadastroDinamico.Core
             return dataCorreta;
         }
 
-        public async Task<string> AlterarRegistroAsync(Dictionary<string, string> valores)
+        public async Task<string> AlterarRegistroAsync(Dictionary<string, string> valores, int idUsuario)
         {
             string retorno = string.Empty;
+
             try
             {
                 SqlClient.Repositorio repositorio = new SqlClient.Repositorio(IdServidor);
+                var sqliteCore = new SQLiteCore();
                 var pk = string.Empty;
                 AlteracaoRegistroCore alteracaoRegistro = new AlteracaoRegistroCore(Colunas, valores, false);
 
@@ -580,7 +587,19 @@ namespace CadastroDinamico.Core
                 pk = valores["pk"];
 
                 var query = RetornarUpdateAsync(pk, valoresTratados);
-                retorno = await repositorio.AlterarIncluirValoresAsync(query);
+                var usuario = await sqliteCore.RetornarNomeUsuario(idUsuario);
+
+                var dadosLog = new DadosLog()
+                {
+                    Database = this.Database,
+                    Schema = this.Schema,
+                    Tabela = Nome,
+                    Metodo = "AlterarRegistroAsync",
+                    Query = query,
+                    Usuario = usuario
+                };
+
+                retorno = await repositorio.AlterarIncluirValoresAsync(query, dadosLog);
             }
             catch(Exception ex)
             {
@@ -590,7 +609,7 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public async Task<string> InserirRegistroAsync(Dictionary<string, string> valores)
+        public async Task<string> InserirRegistroAsync(Dictionary<string, string> valores, int idUsuario)
         {
             string retorno = string.Empty;
             try
@@ -601,7 +620,18 @@ namespace CadastroDinamico.Core
                 var valoresTratados = alteracaoRegistro.GetValoresTratados();
 
                 var query = await RetornarInsertAsync(valoresTratados);
-                retorno = await repositorio.AlterarIncluirValoresAsync(query);
+                var usuario = await new SQLiteCore().RetornarNomeUsuario(idUsuario);
+                var dadosLog = new DadosLog()
+                {
+                    Database = this.Database,
+                    Schema = this.Schema,
+                    Tabela = Nome,
+                    Metodo = "InserirRegistroAsync",
+                    Query = query,
+                    Usuario = usuario
+                };
+
+                retorno = await repositorio.AlterarIncluirValoresAsync(query, dadosLog);
             }
             catch (Exception ex)
             {
@@ -772,7 +802,7 @@ namespace CadastroDinamico.Core
             return retorno;
         }
 
-        public async Task<string[]> DeletarRegistroAsync(int idServidor, string pk)
+        public async Task<string[]> DeletarRegistroAsync(int idServidor, string pk, int idUsuario)
         {
             var repositorio = new SqlClient.Repositorio(idServidor);
             string[] retorno = { string.Empty, string.Empty, string.Empty };
@@ -780,7 +810,17 @@ namespace CadastroDinamico.Core
 
             try
             {
-                retorno = await repositorio.DeletarRegistroAsync(query);
+                var usuario = await new SQLiteCore().RetornarNomeUsuario(idUsuario);
+                var dadosLog = new DadosLog()
+                {
+                    Database = this.Database,
+                    Schema = this.Schema,
+                    Tabela = Nome,
+                    Metodo = "DeletarRegistroAsync",
+                    Query = query,
+                    Usuario = usuario
+                };
+                retorno = await repositorio.DeletarRegistroAsync(query, dadosLog);
             }
             catch(Exception ex)
             {
