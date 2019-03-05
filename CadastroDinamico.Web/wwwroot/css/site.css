@@ -15,10 +15,9 @@
 }
 
 #modalLoading img {
-    top: 50%;
     height: 200px;
     position: relative;
-    margin-top: -100px;
+    margin-top: 50%;
 }
 
 #modalLoading {

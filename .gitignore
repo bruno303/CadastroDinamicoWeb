@@ -263,3 +263,4 @@ __pycache__/
 config.ini
 /CadastroDinamico.Web/Properties/PublishProfiles
 /CadastroDinamico.Web/wwwroot/bundles
+/CadastroDinamico.Web/publish_comands
