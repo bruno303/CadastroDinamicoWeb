@@ -1,8 +1,8 @@
 using System;
 
-namespace CadastroDinamico.Dominio
+namespace CadastroDinamico.Web.Models
 {
-    public class DadosLog
+    public class LogViewModel
     {
         public int IdLog { get; set; }
         public string Database { get; set; }

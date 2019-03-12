@@ -1,4 +1,4 @@
-﻿function createDatatable(selector) {
+﻿function createDatatable(selector, searching = false) {
     return $(selector).DataTable({
         language: {
             "decimal": ",",
@@ -24,6 +24,6 @@
                 "sortDescending": ": ative para ordenar descendentemente"
             }
         },
-        searching: false
+        searching: searching
     });
 }

@@ -609,5 +609,40 @@ namespace CadastroDinamico.Repositorio.SqlClient
                 await conexao.ExecutarQueryAsyncNoTransaction(queryLog.ToString());
             }
         }
+
+        public async Task<List<DadosLog>> GetLogs()
+        {
+            var logData = new List<DadosLog>();
+            var query = new StringBuilder();
+            var conexao = new Conexao(await RetornarConnectionStringAsync(DATABASE_NAME));
+
+            query.AppendLine(" SELECT L.ID_LOG, B.NOME AS BANCO_DADOS, E.NOME AS ESQUEMA, T.NOME AS TABELA, ");
+            query.AppendLine("     L.USUARIO, L.DATA_HORA, L.METODO, L.QUERY_EXECUTADA ");
+            query.AppendLine($" FROM LOG L WITH(NOLOCK)");
+            query.AppendLine($" INNER JOIN BANCO_DADOS B WITH(NOLOCK) ON L.ID_BANCO_DADOS = B.ID_BANCO_DADOS ");
+            query.AppendLine($" INNER JOIN ESQUEMA E WITH(NOLOCK) ON L.ID_ESQUEMA = E.ID_ESQUEMA ");
+            query.AppendLine($" INNER JOIN TABELA T WITH(NOLOCK) ON L.ID_TABELA = T.ID_TABELA ");
+
+            var result = await conexao.RetornarDadosAsync(query.ToString());
+            if (result.Rows.Count > 0)
+            {
+                for (int i = 0; i < result.Rows.Count; i++)
+                {
+                    logData.Add(new DadosLog()
+                    {
+                        IdLog = Convert.ToInt32(result.Rows[i]["ID_LOG"].ToString()),
+                        Database = result.Rows[i]["BANCO_DADOS"].ToString(),
+                        Schema = result.Rows[i]["ESQUEMA"].ToString(),
+                        Tabela = result.Rows[i]["TABELA"].ToString(),
+                        Usuario = result.Rows[i]["USUARIO"].ToString(),
+                        DataHora = Convert.ToDateTime(result.Rows[i]["DATA_HORA"].ToString()),
+                        Metodo = result.Rows[i]["METODO"].ToString(),
+                        Query = result.Rows[i]["QUERY_EXECUTADA"].ToString()
+                    });
+                }
+            }
+
+            return logData;
+        }
     }
 }
