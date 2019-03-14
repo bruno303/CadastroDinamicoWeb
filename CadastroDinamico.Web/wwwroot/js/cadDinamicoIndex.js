@@ -1,6 +1,8 @@
 ﻿var table = null;
 
 $(document).ready(() => {
+    setMaskDateTime('.input-data')
+
     const form = document.querySelector('form');
     form.onsubmit = newOnSubmit;
     requestData();

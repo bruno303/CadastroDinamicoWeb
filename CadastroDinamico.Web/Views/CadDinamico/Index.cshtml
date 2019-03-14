@@ -87,14 +87,15 @@
                         {
                             <div class="form-group">
                                 <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
-                                <input type="number" class="form-control" id="@nome" step=".01" name="@nome" />
+                                <input class="form-control input-decimal" id="@nome"
+                                       name="@nome" onkeydown="tratarKeyDown(event)" />
                             </div>
                         }
                         else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "DATETIME")
                         {
                             <div class="form-group">
                                 <label for="@nome">@Model.ColunasFiltro[cont].Nome</label>
-                                <input type="datetime" class="form-control inputData" id="@nome" name="@nome" />
+                                <input type="datetime" class="form-control input-data" id="@nome" name="@nome" />
                             </div>
                         }
                         else if (Model.ColunasFiltro[cont].Tipo.ToUpper() == "DATE")
@@ -158,9 +159,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody>
-
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -171,4 +170,5 @@
 @section Scripts {
     <script type="text/javascript" src="~/bundles/js/useDatatable.min.js"></script>
     <script type="text/javascript" src="~/bundles/js/cadDinamicoIndex.min.js"></script>
+    <script type="text/javascript" src="~/bundles/js/cadDinamicoTratamentoInputs.min.js"></script>
 }

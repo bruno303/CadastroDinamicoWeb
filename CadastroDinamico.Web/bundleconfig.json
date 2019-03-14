@@ -23,9 +23,10 @@
     "sourceMap": false
   },
   {
-    "outputFileName": "wwwroot/bundles/js/cadDinamicoAlteracao.min.js",
+    "outputFileName": "wwwroot/bundles/js/cadDinamicoTratamentoInputs.min.js",
     "inputFiles": [
-      "wwwroot/js/cadDinamicoAlteracao.js"
+      "wwwroot/lib/jquery-mask/jquery-mask.js",
+      "wwwroot/js/cadDinamicoTratamentoInputs.js"
     ],
     "minify": {
       "enabled": true,

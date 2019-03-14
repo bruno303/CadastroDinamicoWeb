@@ -71,11 +71,11 @@
                             <label for="@nome">@Model.Colunas[cont].Nome</label>
                             @if (Model.Colunas[cont].IsChavePrimaria)
                             {
-                                <input type="number" class="form-control" id="@nome" step=".01" name="@nome" value="0" disabled="disabled" />
+                                <input class="form-control input-decimal" id="@nome" name="@nome" value="0" onkeydown="tratarKeyDown(event)" disabled="disabled" />
                             }
                             else
                             {
-                                <input type="number" class="form-control" id="@nome" step=".01" name="@nome" value="0" />
+                                <input class="form-control input-decimal" id="@nome" name="@nome" value="0" onkeydown="tratarKeyDown(event)" />
                             }
                         </div>
                     }
@@ -85,7 +85,7 @@
                             <label for="@nome">
                                 @Model.Colunas[cont].Nome
                             </label>
-                            <input type="datetime" class="form-control inputData" id="@nome" name="@nome" />
+                            <input type="datetime" class="form-control input-data" id="@nome" name="@nome" />
                         </div>
                     }
                     else if (Model.Colunas[cont].Tipo.ToUpper() == "DATE")
@@ -127,7 +127,7 @@
                     }
                 }
             }
-                
+
             <div class="row">
                 <div class="col-md-6 col-sm-6 col-lg-6 col-6">
                     <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>
@@ -145,17 +145,10 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript" src="~/bundles/js/cadDinamicoAlteracao.min.js"></script>
-
-    <script>
+    <script type="text/javascript" src="~/bundles/js/cadDinamicoTratamentoInputs.min.js"></script>
+    <script type="text/javascript">
         $(document).ready(() => {
-            $(".inputData").inputmask("datetime", {
-                mask: "1/2/y h:s",
-                placeholder: "dd/mm/yyyy hh:mm",
-                alias: "datetime",
-                separator: "/",
-                hourFormat: "24"
-            });
+            setMaskDateTime('.input-data');
         });
     </script>
 }
