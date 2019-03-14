@@ -1,90 +1,73 @@
 ﻿using CadastroDinamico.Dominio;
-using CadastroDinamico.Utils;
 using System;
+using System.Threading.Tasks;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
     public class ConfiguradorBancoDados
     {
-        private const string FILE_NAME = "config.ini";
-        private readonly string Path;
-
-        public ConfiguradorBancoDados()
+        public static async Task<BancoDados> RetornarConfiguracaoBancoDados(int idServidor, string database = null)
         {
-            Path = AppDomain.CurrentDomain.BaseDirectory;
-            if (!Path.EndsWith("\\"))
-            {
-                Path += "\\";
-            }
-            Path += FILE_NAME;
-        }
-
-        public string AlterarConfiguracaoBancoDados(BancoDados configuracao)
-        {
-            string retorno = string.Empty;
-            string json = string.Empty;
+            BancoDados configuracao = new BancoDados();
+            var repositorioSQLite = new SQLite.Repositorio();
 
             try
             {
-                if (configuracao != null)
-                {
-                    json = new Json<BancoDados>().ConverterParaJson(configuracao);
-                    json = new Criptografia().Criptografar(json);
-                    new Arquivo().EscreverEmArquivo(Path, json, false);
-                }
-                else
-                {
-                    new Arquivo().EscreverEmArquivo(Path, string.Empty, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                retorno = "Erro ao salvar as configurações. Mensagem: " + ex.Message;
-            }
+                var servidor = await repositorioSQLite.RetornarServidorAsync(idServidor);
 
-            return retorno;
-        }
+                configuracao.Servidor = servidor.Hostname;
+                configuracao.Instancia = servidor.Instancia;
+                configuracao.Database = database;
+                configuracao.Usuario = servidor.Usuario;
+                configuracao.Senha = servidor.Senha;
+                configuracao.GravarLog = servidor.GravarLog;
+                configuracao.UsarTransacao = servidor.UsarTransacao;
 
-        public System.Threading.Tasks.Task<string> AlterarConfiguracaoBDAsync(BancoDados configuracao)
-        {
-            return System.Threading.Tasks.Task.Run(() =>
-            {
-                return AlterarConfiguracaoBancoDados(configuracao);
-            });
-        }
-
-        public BancoDados RetornarConfiguracaoBancoDados()
-        {
-            BancoDados configuracao = null;
-            Criptografia criptografia = new Criptografia();
-            string json = string.Empty;
-
-            try
-            {
-                Arquivo arquivo = new Arquivo();
-                json = arquivo.LerArquivo(Path);
-                json = criptografia.Descriptografar(json);
-                configuracao = new Json<BancoDados>().ConverterParaObjeto(json);
+                return configuracao;
             }
             catch (Exception)
             {
-                configuracao = null;
+                throw;
             }
-
-            return configuracao;
         }
 
-        public System.Threading.Tasks.Task<BancoDados> RetornarConfiguracaoBDAsync()
+        public static async Task<bool> RetornarGravaLog(int idServidor)
         {
-            return System.Threading.Tasks.Task.Run(() =>
+            try
             {
-                return RetornarConfiguracaoBancoDados();
-            });
+                BancoDados configuracao = await RetornarConfiguracaoBancoDados(idServidor);
+                return configuracao.GravarLog;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
-        public bool ConfiguracaoValida()
+        public static async Task<bool> RetornarUsaTransacao(int idServidor)
         {
-            return RetornarConfiguracaoBancoDados() != null;
+            try
+            {
+                BancoDados configuracao = await RetornarConfiguracaoBancoDados(idServidor);
+                return configuracao.UsarTransacao;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public static async Task<string> RetornarConnectionStringAsync(int idServidor, string database = null)
+        {
+            try
+            {
+                BancoDados configuracao = await RetornarConfiguracaoBancoDados(idServidor, database);
+                return configuracao.ToString();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

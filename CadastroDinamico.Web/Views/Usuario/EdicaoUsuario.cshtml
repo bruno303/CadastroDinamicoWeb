@@ -1,0 +1,48 @@
+﻿@model UsuarioViewModel
+
+<div class="row">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <form method="post" action="/Usuario/Gravar/" role="form">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                @Html.HiddenFor(p => p.IdUsuario, new { @class = "form-control" })
+                @Html.ValidationMessageFor(p => p.IdUsuario, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Nome)
+                @Html.TextBoxFor(p => p.Nome, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Nome, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Login)
+                @Html.TextBoxFor(p => p.Login, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Login, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Senha)
+                @Html.EditorFor(p => p.Senha, new { htmlAttributes = new { @class = "form-control", type = "password" } })
+                <br />
+                @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
+            </div>
+            <br />
+
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i></button>
+            <a role="button" class="btn btn-outline-secondary" href="/Usuario" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
+        </form>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/bundles/js/validate.min.js"></script>
+}

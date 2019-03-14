@@ -1,0 +1,87 @@
+﻿@model List<ServidorViewModel>
+
+@section Stylesheets {
+    <link rel="stylesheet" type="text/css" href="~/lib/datatables/datatables.min.css" />
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <a role="button" class="btn btn-outline-secondary" href="/" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
+        <a class="btn btn-outline-primary padding-cima-baixo" role="button" href="/Servidor/Novo/" title="Novo">
+            <i class="fas fa-plus"></i>
+        </a>
+        <br />
+        <br />
+        <div class="table-responsive table-striped">
+            <table class="table padding-cima-baixo datatable">
+                <thead>
+                    <tr>
+                        <th>
+                            Hostname
+                        </th>
+                        <th>
+                            Instância
+                        </th>
+                        <th>
+                            Usuário
+                        </th>
+                        <th>
+                            Gravar Log
+                        </th>
+                        <th>
+                            Usar Transação
+                        </th>
+                        <th>
+                            Ações
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var usarTransacao = item.UsarTransacao ? "checked" : "";
+                        var gravarLog = item.GravarLog ? "checked" : "";
+
+                        <tr>
+                            <td>
+                                @item.Hostname
+                            </td>
+                            <td>
+                                @item.Instancia
+                            </td>
+                            <td>
+                                @item.Usuario
+                            </td>
+                            <td>
+                                <input type="checkbox" @gravarLog onclick='this.checked = !this.checked'/>
+                            </td>
+                            <td>
+                                <input type="checkbox" @usarTransacao onclick='this.checked = !this.checked'/>
+                            </td>
+                            <td>
+                                <a href=@("/Servidor/Usar/" + item.IdServidor.ToString()) role="button" class="btn btn-dark btn-sm" title="Usar">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <a href=@("/Servidor/Editar/" + item.IdServidor.ToString()) role="button" class="btn btn-success btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href=@("/Servidor/Deletar/" + item.IdServidor.ToString()) role="button" class="btn btn-danger btn-sm" title="Deletar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/bundles/js/useDatatable.min.js"></script>
+    <script>
+        $(document).ready(() => {
+            createDatatable('.datatable');
+        });
+    </script>
+}

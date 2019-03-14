@@ -1,0 +1,71 @@
+﻿@model ServidorViewModel
+
+<div class="row">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <form method="post" action="/Servidor/Gravar/" role="form">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                @Html.HiddenFor(p => p.IdServidor, new { @class = "form-control" })
+                @Html.ValidationMessageFor(p => p.IdServidor, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Hostname)
+                @Html.TextBoxFor(p => p.Hostname, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Hostname, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Instancia)
+                @Html.TextBoxFor(p => p.Instancia, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Instancia, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Usuario)
+                @Html.EditorFor(p => p.Usuario, new { htmlAttributes = new { @class = "form-control" } })
+                <br />
+                @Html.ValidationMessageFor(p => p.Usuario, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Senha)
+                @Html.EditorFor(p => p.Senha, new { htmlAttributes = new { @class = "form-control", type = "password" } })
+                <br />
+                @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox" style="margin-bottom: 15px;">
+                    @Html.CheckBoxFor(m => m.GravarLog)
+                    @Html.LabelFor(m => m.GravarLog)
+                    @Html.ValidationMessageFor(m => m.GravarLog)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox" style="margin-bottom: 15px;">
+                    @Html.CheckBoxFor(m => m.UsarTransacao)
+                    @Html.LabelFor(m => m.UsarTransacao)
+                    @Html.ValidationMessageFor(m => m.UsarTransacao)
+                </div>
+            </div>
+            <br />
+
+            <button type="submit" class="btn btn-primary" title="Salvar"><i class="fas fa-save"></i></button>
+            <a role="button" class="btn btn-outline-secondary" href="/Servidor" title="Voltar"><i class="fas fa-hand-point-left"></i></a>
+        </form>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/bundles/js/validate.min.js"></script>
+}

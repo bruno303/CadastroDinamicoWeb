@@ -3,6 +3,15 @@
     ViewData["Title"] = "Error";
 }
 
+@section Stylesheets {
+    <style>
+        .margins {
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+    </style>
+}
+
 <h1 class="text-danger">Error.</h1>
 <h2 class="text-danger">An error occurred while processing your request.</h2>
 
@@ -20,3 +29,9 @@
 <p>
     <strong>Development environment should not be enabled in deployed applications</strong>, as it can result in sensitive information from exceptions being displayed to end users. For local debugging, development environment can be enabled by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>, and restarting the application.
 </p>
+
+<div class="row">
+    <div class="col-md-12">
+        <button class="btn btn-outline-secondary margins" onclick="javascript:history.go(-1)" title="Voltar"><i class="fas fa-hand-point-left"></i></button>
+    </div>
+</div>

@@ -5,32 +5,43 @@ using System.Threading.Tasks;
 
 namespace CadastroDinamico.Repositorio.SqlClient
 {
-    public class Conexao
+    internal class Conexao
     {
-        private string _connectionString;
+        private readonly string _connectionString;
+        public bool UsarTransacao { get; set; }
 
         public Conexao()
         {
             _connectionString = string.Empty;
+            Init();
         }
 
         public Conexao(string connectionString)
         {
             _connectionString = connectionString;
+            Init();
+        }
+
+        private void Init()
+        {
+            UsarTransacao = false;
         }
 
         #region Retornar dados
-        public DataTable RetornarDados(string query)
+        public async Task<DataTable> RetornarDadosAsync(string query)
         {
             DataTable retorno = new DataTable();
             try
             {
                 using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
                 {
-                    conexao.Open();
+                    await conexao.OpenAsync();
                     using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
                     {
-                        adapter.Fill(retorno);
+                        await Task.Factory.StartNew(() =>
+                        {
+                            adapter.Fill(retorno);
+                        });
                     }
                 }
             }
@@ -42,28 +53,46 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return retorno;
         }
 
-        public Task<DataTable> RetornarDadosAsync(string query)
+        public async Task<DataTable> RetornarDadosAsync(string query, int timeOut)
         {
-            return Task.Run(() =>
+            DataTable retorno = new DataTable();
+            try
             {
-                return RetornarDados(query);
-            });
+                var strConnection = RetornarStringConexao() + "Connection Timeout=" + timeOut.ToString() + ";";
+                using (SqlConnection conexao = new SqlConnection(strConnection))
+                {
+                    await conexao.OpenAsync();
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
+                    {
+                        await Task.Factory.StartNew(() =>
+                        {
+                            adapter.Fill(retorno);
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return retorno;
         }
         #endregion
 
         #region Executar query
-        public int ExecutarQuery(string query)
+        public async Task<int> ExecutarQueryAsyncNoTransaction(string query)
         {
             int linhasAfetadas = 0;
             try
             {
                 using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
                 {
-                    conexao.Open();
+                    await conexao.OpenAsync();
                     using (SqlCommand command = new SqlCommand(query, conexao))
                     {
                         command.CommandType = CommandType.Text;
-                        linhasAfetadas = command.ExecuteNonQuery();
+                        linhasAfetadas = await command.ExecuteNonQueryAsync();
                     }
                 }
             }
@@ -74,12 +103,50 @@ namespace CadastroDinamico.Repositorio.SqlClient
             return linhasAfetadas;
         }
 
-        public Task<int> ExecutarQueryAsync(string query)
+        public async Task<int> ExecutarQueryAsync(string query)
         {
-            return Task.Run(() =>
+            int linhasAfetadas = 0;
+            try
             {
-                return ExecutarQuery(query);
-            });
+                using (SqlConnection conexao = new SqlConnection(RetornarStringConexao()))
+                {
+                    await conexao.OpenAsync();
+                    if (UsarTransacao)
+                    {
+                        using (var transacao = conexao.BeginTransaction(IsolationLevel.ReadCommitted))
+                        {
+                            try
+                            {
+                                using (SqlCommand command = new SqlCommand(query, conexao))
+                                {
+                                    command.CommandType = CommandType.Text;
+                                    command.Transaction = transacao;
+                                    linhasAfetadas = await command.ExecuteNonQueryAsync();
+                                }
+                                transacao.Commit();
+                            }
+                            catch (Exception ex)
+                            {
+                                transacao.Rollback();
+                                throw ex;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        using (SqlCommand command = new SqlCommand(query, conexao))
+                        {
+                            command.CommandType = CommandType.Text;
+                            linhasAfetadas = await command.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return linhasAfetadas;
         }
         #endregion
 
@@ -96,7 +163,5 @@ namespace CadastroDinamico.Repositorio.SqlClient
             }
         }
         #endregion
-
-
     }
 }

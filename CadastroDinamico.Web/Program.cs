@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Net;
 
 namespace CadastroDinamico.Web
 {
@@ -14,11 +9,22 @@ namespace CadastroDinamico.Web
     {
         public static void Main(string[] args)
         {
+            ConfigurarAplicacao();
             CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseKestrel(opts =>
+                {
+                    opts.Listen(IPAddress.Loopback, 5000);
+                })
                 .UseStartup<Startup>();
+
+        private static void ConfigurarAplicacao()
+        {
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("pt-BR", false);
+            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("pt-BR", false);
+        }
     }
 }

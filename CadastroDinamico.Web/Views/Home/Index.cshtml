@@ -1,3 +1,32 @@
 ﻿@{
  Layout = "_layoutClean";
 }
+
+@section StyleSheets {
+    <style>
+        .div-body {
+            width: 100%;
+            width: auto;
+        }
+        .div-body > img {
+            width: 250px;
+            height: auto;
+            left: 50%;
+            margin-left: -125px;
+            margin-top: 10%;
+            position: absolute;
+            z-index: -1;
+        }
+
+        @@media(min-width: 768px) {
+            .div-body > img {
+                width: 450px !important;
+                margin-left: -225px !important;
+            }
+        }
+    </style>
+}
+
+<div class="div-body">
+    <img src="~/images/bd.jpg"/>
+</div>

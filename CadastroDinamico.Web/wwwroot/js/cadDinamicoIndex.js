@@ -1,144 +1,91 @@
-﻿// Databases
-function consultarDatabases() {
-    $.ajax({
-        method: "GET",
-        dataType: "JSON",
-        url: "/CadDinamico/SelecionarDatabases",
-        sucess: function (data) {
-            $("#selDatabases > option").remove();
-            fillDropDownDatabase("#selDatabases", data);
-            consultarSchemas();
-        },
-        error: function (data) {
-            alert("Houve um erro ao consultar as databases.");
-        },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selDatabases > option").remove();
-                fillDropDownDatabase("#selDatabases", jqXHR.responseJSON);
-                consultarSchemas();
-            }
-        }
-    })
-}
+﻿var table = null;
 
-// Tabelas
-function consultarTabelas() {
-    $.ajax({
-        method: "GET",
-        dataType: "JSON",
-        url: "/CadDinamico/SelecionarTabelas?database=" + $("#selDatabases")[0].value +
-            "&schema=" + $("#selSchemas")[0].value,
-        sucess: function (data) {
-            $("#selTabelas > option").remove();
-            fillDropDownDatabase("#selTabelas", data);
-        },
-        error: function (data) {
-            alert("Houve um erro ao consultar as tabelas.");
-        },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selTabelas > option").remove();
-                fillDropDownDatabase("#selTabelas", jqXHR.responseJSON);
-                consultarColunas();
-            }
-        }
-    })
-}
-
-// Colunas
-function consultarColunas() {
-    if ($("#selTabelas")[0].value !== '') {
-        $.ajax({
-            method: "GET",
-            dataType: "JSON",
-            url: "/CadDinamico/SelecionarColunas?database=" + $("#selDatabases")[0].value +
-                "&schema=" + $("#selSchemas")[0].value +
-                "&tabela=" + $("#selTabelas")[0].value,
-            sucess: function (data) {
-                $("#tblColunas > tbody tr").remove();
-                $("#tblColunas")[0].hidden = false;
-                $.each(data, function (i, coluna) {
-                    $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" checked="checked" /></td></tr>');
-                });
-                awaitLoad(false);
-            },
-            error: function (data) {
-                $("#tblColunas")[0].hidden = true;
-                awaitLoad(false);
-                alert("Houve um erro ao consultar as colunas.");
-            },
-            complete: (jqXHR) => {
-                if (jqXHR.readyState === 4) {
-                    $("#tblColunas > tbody tr").remove();
-                    $("#tblColunas")[0].hidden = false;
-                    $.each(jqXHR.responseJSON, function (i, coluna) {
-                        $("#tblColunas > tbody").append('<tr><td>' + coluna.name + '</td><td><input type="checkbox" checked="checked" /></td></tr>');
-                    });
-                }
-                awaitLoad(false);
-            },
-            beforeSend: () => {
-                awaitLoad(true);
-            }
-        })
-    }
-    else {
-        $("#tblColunas > tbody tr").remove();
-    }
-}
-
-function awaitLoad(enabled) {
-    $("#selDatabases")[0].disabled = enabled;
-    $("#selSchemas")[0].disabled = enabled;
-    $("#selTabelas")[0].disabled = enabled;
-}
-
-// Schemas
-function consultarSchemas() {
-    $.ajax({
-        method: "GET",
-        dataType: "JSON",
-        url: "/CadDinamico/SelecionarSchemas?database=" + $("#selDatabases")[0].value,
-        sucess: function (data) {
-            $("#selSchemas > option").remove();
-            fillDropDownDatabase("#selSchemas", data);
-        },
-        error: function (data) {
-            alert("Houve um erro ao consultar os schemas.");
-        },
-        complete: (jqXHR) => {
-            if (jqXHR.readyState === 4) {
-                $("#selSchemas > option").remove();
-                fillDropDownDatabase("#selSchemas", jqXHR.responseJSON);
-                consultarTabelas();
-            }
-        }
-    })
-}
-
-//Geral
 $(document).ready(() => {
-    consultarDatabases();
+    setMaskDateTime('.input-data')
 
-    $("#selDatabases").change(() => {
-        $("#selSchemas > option").remove();
-        consultarSchemas();
+    const form = document.querySelector('form');
+    form.onsubmit = newOnSubmit;
+    requestData();
+});
+
+function requestData() {
+    $.ajax({
+        url: `/CadDinamico/ConsultarDadosIndex?database=${$('#Database').val()}&schema=${$('#Schema').val()}&tabela=${$('#Tabela').val()}`,
+        method: 'get',
+        error: function (err) {
+            alert('Não foi possível consultar os dados da tabela.');
+        },
+        success: function (data) {
+            mountTable(data);
+        }
+    });
+}
+
+function mountTable(data) {
+    let innerHTML = '';
+    let url = '';
+    let urlDelete = '';
+    const linesCount = data.consultaDados.length;
+    const colsCount = data.consultaDados.length > 0 ? data.consultaDados[0].length : 0;
+
+    for (let lin = 0; lin < linesCount; lin++) {
+        innerHTML += '<tr>';
+        for (let col = 1; col < colsCount; col++) {
+            if (data.colunas[col - 1].tipo.toUpperCase() === 'BIT') {
+                innerHTML += `<input type="hidden" value="false"></td>`
+                innerHTML += `<td><span style="display: none">${data.consultaDados[lin][col].toString().toUpperCase() === 'TRUE' ? 1 : 0}</span><input class="checkbox" onclick="this.checked=!this.checked;" type="checkbox" ${data.consultaDados[lin][col].toString().toUpperCase() === 'TRUE' ? "checked" : ""}><input type="hidden" value="false"></td>`;
+            } else {
+                innerHTML += `<td>${data.consultaDados[lin][col].toString()}</td>`;
+            }
+        }
+        url = `/CadDinamico/TelaDinamicaAlteracao?database=${data.database}&schema=${data.schema}&tabela=${data.nome}&pk=${data.consultaDados[lin][0].toString()}`;
+        urlDelete = `/CadDinamico/DeletarItem?database=${data.database}&schema=${data.schema}&tabela=${data.nome}&pk=${data.consultaDados[lin][0].toString()}`;
+        innerHTML += `<td><a role="button" class="btn btn-success btn-sm" href="${url}" title="Editar"><i class="fas fa-edit"></i></a><a role="button" class="btn btn-danger btn-sm" href="${urlDelete}" title="Excluir"><i class="fas fa-trash-alt"></i></a></td>`;
+        innerHTML += '</tr>';
+    }
+    updateDatatable(innerHTML);
+}
+
+function updateDatatable(innerHTML) {
+    const tableBody = document.querySelector('#tableDadosFiltro tbody');
+    if (table !== null && table !== undefined) {
+        table.destroy();
+        table = null;
+    }
+    tableBody.innerHTML = innerHTML;
+    table = createDatatable('.datatable');
+}
+
+function newOnSubmit(e) {
+    e.preventDefault();
+    const formData = new FormData();
+    let inputs = Array.from(document.querySelectorAll('form input[name]'));
+    let selects = Array.from(document.querySelectorAll('form select[name]'));
+    selects.forEach(element => inputs.push(element));
+
+    inputs.forEach(value => {
+        const inputField = $(`#${value.id}`);
+
+        if (inputField[0].type === 'checkbox') {
+            if (inputField[0].checked) {
+                formData.append(value.name, true);
+            }
+        }
+        else {
+            formData.append(value.name, inputField.val());
+        }
     });
 
-    $("#selSchemas").change(() => {
-        $("#selTabelas > option").remove();
-        consultarTabelas();
+    $.ajax({
+        url: '/CadDinamico/Filtrar',
+        method: 'post',
+        data: formData,
+        dataType: 'json',
+        processData: false,
+        contentType: false,
+        success: function (data) {
+            mountTable(data);
+        },
+        error: function (err) { }
     });
-
-    $("#selTabelas").change(() => {
-        $("#tblColunas > tbody tr").remove();
-        consultarColunas();
-    });
-})
-
-function fillDropDownDatabase(select, data) {
-    $.each(data, function (i, dado) {
-        $(select).append('<option value="' + dado.name + '">' + dado.name + '</option>');
-    })
 }

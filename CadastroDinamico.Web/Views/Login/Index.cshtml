@@ -1,0 +1,51 @@
+﻿@model LoginViewModel
+@{
+    Layout = "_LayoutEmpty";
+}
+
+<br />
+<div class="row">
+    <div class="col-md-3"></div>
+
+    <div class="col-md-6">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <form method="post" action="/Login/Login/" role="form">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                @Html.LabelFor(p => p.Usuario)
+                @Html.TextBoxFor(p => p.Usuario, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Usuario, "", new { @class = "text-danger" }, "")
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(p => p.Senha)
+                @Html.PasswordFor(p => p.Senha, new { @class = "form-control" })
+                <br />
+                @Html.ValidationMessageFor(p => p.Senha, "", new { @class = "text-danger" }, "")
+            </div>
+
+            @if (Model.Servidores.Count > 0)
+            {
+                <div class="form-group">
+                    @Html.LabelFor(p => p.Servidor)
+                    @Html.DropDownListFor(p => p.Servidor, new SelectList(Model.Servidores, "IdServidor", "Hostname"), "NENHUM", new { @class = "form-control" })
+                    <br />
+                    @Html.ValidationMessageFor(p => p.Servidor, "", new { @class = "text-danger" }, "")
+                </div>
+            }
+            <br />
+            <div class="row">
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-block" title="Entrar"><i class="fas fa-sign-in-alt"></i></button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/bundles/js/validate.min.js"></script>
+}
