@@ -67,5 +67,10 @@ namespace CadastroDinamico.Web.Extension
             var servidor = await new Repositorio.SQLite.Repositorio().RetornarServidorAsync(idServidor);
             return new HtmlString(servidor.Hostname);
         }
+
+        public static int RetornarPortaAmbiente(this WebHostBuilderContext webHostBuilderContext)
+        {
+            return webHostBuilderContext.HostingEnvironment.IsProduction() ? 5000 : 5001;
+        }
     }
 }

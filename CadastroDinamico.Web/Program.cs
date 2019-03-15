@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore;
+﻿using CadastroDinamico.Web.Extension;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using System.Globalization;
 using System.Net;
@@ -15,9 +16,9 @@ namespace CadastroDinamico.Web
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseKestrel(opts =>
+                .UseKestrel((hostingContext, opts) =>
                 {
-                    opts.Listen(IPAddress.Loopback, 5000);
+                    opts.Listen(IPAddress.Loopback, hostingContext.RetornarPortaAmbiente());
                 })
                 .UseStartup<Startup>();
 
