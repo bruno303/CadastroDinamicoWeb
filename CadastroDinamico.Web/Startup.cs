@@ -33,6 +33,7 @@ namespace CadastroDinamico.Web
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.HttpOnly = true;
+                options.Cookie.Name = "caddinamico_" + DateTime.Now.ToString().Replace(" ", "_");
             });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
