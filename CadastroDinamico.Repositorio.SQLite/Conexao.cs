@@ -37,7 +37,7 @@ namespace CadastroDinamico.Repositorio.SQLite
                     await conexao.OpenAsync();
                     using (var adapter = new SQLiteDataAdapter(query, conexao))
                     {
-                        await Task.Factory.StartNew(() =>
+                        await Task.Run(() =>
                         {
                             adapter.Fill(retorno);
                         });

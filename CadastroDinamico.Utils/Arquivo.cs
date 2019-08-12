@@ -86,7 +86,7 @@ namespace CadastroDinamico.Utils
         {
             if (Directory.Exists(path))
             {
-                var task = Task.Factory.StartNew(() => new DirectoryInfo(path).GetFiles());
+                var task = Task.Run(() => new DirectoryInfo(path).GetFiles());
                 return await task;
             }
             else

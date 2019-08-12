@@ -38,7 +38,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     await conexao.OpenAsync();
                     using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
                     {
-                        await Task.Factory.StartNew(() =>
+                        await Task.Run(() =>
                         {
                             adapter.Fill(retorno);
                         });
@@ -64,7 +64,7 @@ namespace CadastroDinamico.Repositorio.SqlClient
                     await conexao.OpenAsync();
                     using (SqlDataAdapter adapter = new SqlDataAdapter(query, conexao))
                     {
-                        await Task.Factory.StartNew(() =>
+                        await Task.Run(() =>
                         {
                             adapter.Fill(retorno);
                         });
